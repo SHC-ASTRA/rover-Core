@@ -6,11 +6,15 @@
 #include <cstdlib>
 #include <utility/imumaths.h>
 // Our own resources
-#include "AstraMotors.h"
-#include "AstraCAN.h"
-#include "AstraSensors.h"
+//#include "AstraMotors.h"
+//#include "AstraCAN.h"
+//#include "AstraSensors.h"
 #include "TeensyThreads.h"
 #include "AstraSubroutines.h"
+
+
+
+
 
 using namespace std;
 

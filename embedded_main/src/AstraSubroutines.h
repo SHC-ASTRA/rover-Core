@@ -4,7 +4,7 @@
 
 
 
-bool orientDir(float orientGoal, long timeout, Adafruit_BNO055 &bno)
+/* bool orientDir(float orientGoal, long timeout, Adafruit_BNO055 &bno)
 {
     float orientation = getBNOOrient(bno);//current orientation of rover
     unsigned long startTime = millis();
@@ -21,3 +21,4 @@ bool orientDir(float orientGoal, long timeout, Adafruit_BNO055 &bno)
 
     return false; //False fallback
 }
+*/

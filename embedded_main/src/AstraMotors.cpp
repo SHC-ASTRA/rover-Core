@@ -24,6 +24,7 @@ AstraMotors::AstraMotors(int setMotorID, int setCtrlMode, bool inv, int setMaxSp
     inverted = inv;
 }
 
+//Add the funky graph
 float AstraMotors::convertControllerValue(float stickValue){
     float output = stickValue;
 
@@ -86,10 +87,9 @@ float AstraMotors::getSetDuty(){
 void AstraMotors::UpdateForAcceleration(){
 	float dutyCycleThreshold = 1;
 
-	//if(controlMode == 1)
-	//{
-		if((currentDutyCycle <= setDutyCycle + 1.0) && (currentDutyCycle >= setDutyCycle - 1.0))
-		{
+	//if(controlMode == 1){
+    if(setDutyCycle != 0){
+		if((currentDutyCycle <= setDutyCycle + 0.1) && (currentDutyCycle >= setDutyCycle - 0.1)){
 			currentDutyCycle = setDutyCycle;
 		}else if(currentDutyCycle < setDutyCycle - dutyCycleThreshold){
 			currentDutyCycle += dutyCycleAccel;
@@ -102,9 +102,9 @@ void AstraMotors::UpdateForAcceleration(){
             }
             currentDutyCycle = 0;
 		}
-
-        
-
+    }else{
+        currentDutyCycle = 0;
+    }
 	//}
 
 }

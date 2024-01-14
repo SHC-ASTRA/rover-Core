@@ -4,7 +4,7 @@
 
 
 //Convert float to little endian decimal representation
-void Float2LEDec(float x, uint8_t (& buffer_data)[8])
+inline void Float2LEDec(float x, uint8_t (& buffer_data)[8])
 {
   unsigned char b[8]={0};
   memcpy(b,&x,4);
@@ -18,7 +18,7 @@ void Float2LEDec(float x, uint8_t (& buffer_data)[8])
 }
 
 
-void identifyDevice(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id)
+inline void identifyDevice(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id)
 {
   CAN_message_t msg; 
   msg.flags.extended = 1;
@@ -31,7 +31,7 @@ void identifyDevice(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id)
 
 
 
-void sendDutyCycle(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id, float duty_cycle)
+inline void sendDutyCycle(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id, float duty_cycle)
 {
   CAN_message_t msg; 
   msg.flags.extended = 1;
@@ -41,7 +41,7 @@ void sendDutyCycle(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id, 
   Can0.write(msg);
 }
 
-void sendHeartbeat(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id)
+inline void sendHeartbeat(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id)
 {
   CAN_message_t msg; 
   msg.flags.extended = 1;
