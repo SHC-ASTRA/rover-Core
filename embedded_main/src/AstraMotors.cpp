@@ -91,20 +91,21 @@ void AstraMotors::UpdateForAcceleration(){
 
 	//if(controlMode == 1){
     if(setDutyCycle != 0){
-		if((cD <= sD + 0.1) && (cD >= sD - 0.1)){
+		if((cD <= sD + 0.1) && (cD >= sD - 0.1)){//if within 0.1 of desired. Just set it, don't gradually accelerate
 			currentDutyCycle = setDutyCycle;
-		}else if(cD < sD - dCThreshold){
+		}else if(cD < sD - dCThreshold){//increment if below set
 			currentDutyCycle += dutyCycleAccel;
-		}else if(cD > sD + dCThreshold){
+		}else if(cD > sD + dCThreshold){//decrement if above set
 			currentDutyCycle -= dutyCycleAccel;
 		}else{
-			if((cD > 0 && sD < 0) || (cD < 0 && sD > 0))
+			if((cD > 0 && sD < 0) || (cD < 0 && sD > 0))//if sticks in opposite direction, quick stop
             {
                 currentDutyCycle = 0;
+                setDutyCycle = 0;
             }
             currentDutyCycle = 0;
 		}
-    }else{
+    }else{//if set 0
         currentDutyCycle = 0;
     }
 	//}
