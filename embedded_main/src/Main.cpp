@@ -36,8 +36,6 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 
 
 
-
-
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
@@ -174,17 +172,18 @@ void loop() {
     token = scommand.substr(0, pos);
     String prevCommand;
 
-    if (token == "ctrl") {                          // Is looking for a command that looks like "ctrl,x,y,z,w" where x,y,z, and w are >-1 and <1
+    if (token == "ctrl") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         if(command != prevCommand)
         {
           scommand.erase(0, pos + delimiter.length());
 
           prevCommand = command;
 
-          for(int i = 0; i < 4; i++){
+          for(int i = 0; i < 3; i+= 2){
             token = scommand.substr(0, pos);
             pos = scommand.find(delimiter);
             motorList[i].setDuty(stof(token));
+            motorList[i+1].setDuty(stof(token));
             /*
             Serial.print("SetDUTY [");
             Serial.print(i);

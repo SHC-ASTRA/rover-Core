@@ -85,18 +85,20 @@ float AstraMotors::getSetDuty(){
 
 
 void AstraMotors::UpdateForAcceleration(){
-	float dutyCycleThreshold = 1;
+	float dCThreshold = 0.1;
+    float cD = currentDutyCycle;
+    float sD = setDutyCycle;
 
 	//if(controlMode == 1){
     if(setDutyCycle != 0){
-		if((currentDutyCycle <= setDutyCycle + 0.1) && (currentDutyCycle >= setDutyCycle - 0.1)){
+		if((cD <= sD + 0.1) && (cD >= sD - 0.1)){
 			currentDutyCycle = setDutyCycle;
-		}else if(currentDutyCycle < setDutyCycle - dutyCycleThreshold){
+		}else if(cD < sD - dCThreshold){
 			currentDutyCycle += dutyCycleAccel;
-		}else if(currentDutyCycle > setDutyCycle + dutyCycleThreshold){
+		}else if(cD > sD + dCThreshold){
 			currentDutyCycle -= dutyCycleAccel;
 		}else{
-			if((currentDutyCycle > 0 && setDutyCycle < 0) || (currentDutyCycle < 0 && setDutyCycle > 0))
+			if((cD > 0 && sD < 0) || (cD < 0 && sD > 0))
             {
                 currentDutyCycle = 0;
             }

@@ -1,6 +1,6 @@
 #include "AstraCAN.h"
 #include "AstraMotors.h"
-#include "AStraSensors.h"
+#include "AstraSensors.h"
 
 
 
