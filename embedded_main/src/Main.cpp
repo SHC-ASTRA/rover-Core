@@ -36,6 +36,57 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 
 
 
+void turnCW(){
+  motorList[0].setDuty(0.2);
+  motorList[1].setDuty(0.2);
+  motorList[2].setDuty(-0.2);
+  motorList[3].setDuty(-0.2);
+}
+
+
+void turnCCW(){
+  motorList[0].setDuty(-0.2);
+  motorList[1].setDuty(-0.2);
+  motorList[2].setDuty(0.2);
+  motorList[3].setDuty(0.2);
+}
+
+
+bool rotateTo(float direction){
+  bool success = 0;
+  bool turningRight;
+  int startTime = /*get start time*/;
+  int expectedTime;
+  float difference;
+  difference = abs(direction - /*get rotation*/);
+  expectedTime = difference * 500;
+  if(sin(direction - /*get rotation*/)>0){
+    turningRight = 1;
+  }else{
+    turningRight = 0;
+  }
+  while(/*get time*/ - startTime < expectedTime){
+    if(!((/*get rotation*/ < direction + 2) && (/*get rotation*/ > direction - 2))){
+     if(turningRight){
+       turnCW();
+     }else{
+       turnCCW();
+     }
+    }else{
+      success = 1;
+    }
+  }
+  return success;
+}
+
+
+bool rotate(float amount){
+  return rotateTo(/*get rotation*/ + amount);
+} 
+
+
+
+
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
@@ -208,7 +259,26 @@ void loop() {
       Serial.println("pong");
     } else if (token == "time") {
       Serial.println(millis());
+    }else if (token == "auto") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        if(command != prevCommand)
+        {
+          scommand.erase(0, pos + delimiter.length());
+          prevCommand = command;
+          pos = scommand.find(delimiter);
+          token = scommand.substr(0, pos);
+
+
+          if(token == "turningTo"){
+            scommand.erase(0, pos + delimiter.length());
+            pos = scommand.find(delimiter);
+            token = scommand.substr(0, pos);
+            rotateTo(stoi(token));
+          }
+        }else{
+          //pass if command if control command is same as previous
+        }
     }
+
 
   }
 
