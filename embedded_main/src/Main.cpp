@@ -55,18 +55,18 @@ void turnCCW(){
 bool rotateTo(float direction){
   bool success = 0;
   bool turningRight;
-  int startTime = /*get start time*/;
+  int startTime = millis(); 
   int expectedTime;
   float difference;
-  difference = abs(direction - /*get rotation*/);
+  //difference = abs(direction - /*get rotation*/);
   expectedTime = difference * 500;
-  if(sin(direction - /*get rotation*/)>0){
+  if(0/*sin(direction - get rotation)>0*/){
     turningRight = 1;
   }else{
     turningRight = 0;
   }
-  while(/*get time*/ - startTime < expectedTime){
-    if(!((/*get rotation*/ < direction + 2) && (/*get rotation*/ > direction - 2))){
+  while(millis() - startTime < expectedTime){
+    if(0/*!((get rotation < direction + 2) && (get rotation > direction - 2))*/){
      if(turningRight){
        turnCW();
      }else{
@@ -259,7 +259,7 @@ void loop() {
       Serial.println("pong");
     } else if (token == "time") {
       Serial.println(millis());
-    }else if (token == "auto") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+    }else if (token == "auto") {                          
         if(command != prevCommand)
         {
           scommand.erase(0, pos + delimiter.length());
