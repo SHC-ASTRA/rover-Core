@@ -33,13 +33,13 @@ class SerialRelay(Node):
                 # if pong is in response, then we are talking with the pico
                 if b"pong" in response:
                     self.port = port
-                    print(f"Found pico at {self.port}!")
+                    print(f"Found MCU at {self.port}!")
                     break
             except:
                 pass
         
         if self.port is None:
-            print("Unable to find pico... please make sure it is connected.")
+            print("Unable to find MCU... please make sure it is connected.")
             sys.exit(1)
         
         self.ser = serial.Serial(self.port, 115200)
