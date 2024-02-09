@@ -84,7 +84,26 @@ bool rotate(float amount){
   return rotateTo(/*get rotation*/ + amount);
 } 
 
+void goForwards(){
+  motorList[0].setDuty(0.2);
+  motorList[1].setDuty(0.2);
+  motorList[2].setDuty(0.2);
+  motorList[3].setDuty(0.2);
+}
 
+void goBackwards(){
+  motorList[0].setDuty(-0.2);
+  motorList[1].setDuty(-0.2);
+  motorList[2].setDuty(-0.2);
+  motorList[3].setDuty(-0.2);
+}
+
+void Stop(){
+  motorList[0].setDuty(0);
+  motorList[1].setDuty(0);
+  motorList[2].setDuty(0);
+  motorList[3].setDuty(0);
+}
 
 
 unsigned long lastAccel;
@@ -273,6 +292,15 @@ void loop() {
             pos = scommand.find(delimiter);
             token = scommand.substr(0, pos);
             rotateTo(stoi(token));
+          }else if(token == "forwards"){
+            scommand.erase(0, pos + delimiter.length());
+            goForwards();
+          }else if(token == "backwards"){
+            scommand.erase(0, pos + delimiter.length());
+            goBackwards();
+          }else if(token == "stop"){
+            scommand.erase(0, pos + delimiter.length());
+            Stop();
           }
         }else{
           //pass if command if control command is same as previous
