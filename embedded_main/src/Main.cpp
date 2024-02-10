@@ -70,7 +70,7 @@ bool rotateTo(float direction, int time){
   int startTime = millis(); 
   int expectedTime;
   float difference;
-  bno.pullBNOData(bno,bnoData);
+  pullBNOData(bno,bnoData);
   difference = abs(direction - bnoData[6]);
   expectedTime = time;
   if(sin(direction - bnoData[6])>0){
@@ -79,6 +79,7 @@ bool rotateTo(float direction, int time){
     turningRight = 0;
   }
   while(millis() - startTime < expectedTime){
+    pullBNOData(bno,bnoData);
     if(!((bnoData[6] < direction + 2) && (bnoData[6] > direction - 2))){
      if(turningRight){
        turnCW();
@@ -392,7 +393,7 @@ void loop() {
 
             scommand.erase(0, pos + delimiter.length());
             float gpsData[3];
-            myGNSS.getPosition(myGNSS, gpsData);
+            getPosition(myGNSS, gpsData);
             Serial.print(gpsData[0]);
             Serial.print(gpsData[1]);
             Serial.print(gpsData[2]);
@@ -401,7 +402,7 @@ void loop() {
 
             scommand.erase(0, pos + delimiter.length());
             float bnoData2[7];
-            bno.pullBNOData(bno,bnoData2);
+            pullBNOData(bno,bnoData2);
             Serial.print(bnoData2[0]);
             Serial.print(bnoData2[1]);
             Serial.print(bnoData2[2]);
@@ -414,7 +415,7 @@ void loop() {
 
             scommand.erase(0, pos + delimiter.length());
             float bmpData[3];
-            bmp.pullBMPData(bmp, bmpData);
+            pullBMPData(bmp, bmpData);
             Serial.print(bmpData[0]);
             Serial.print(bmpData[1]);
             Serial.print(bmpData[2]);
@@ -423,12 +424,12 @@ void loop() {
 
             scommand.erase(0, pos + delimiter.length());
             float gpsData[3];
-            myGNSS.getPosition(myGNSS, gpsData);
+            getPosition(myGNSS, gpsData);
             Serial.print(gpsData[0]);
             Serial.print(gpsData[1]);
             Serial.print(gpsData[2]);
             float bnoData2[7];
-            bno.pullBNOData(bno,bnoData2);
+            pullBNOData(bno,bnoData2);
             Serial.print(bnoData2[0]);
             Serial.print(bnoData2[1]);
             Serial.print(bnoData2[2]);
@@ -437,7 +438,7 @@ void loop() {
             Serial.print(bnoData2[5]);
             Serial.print(bnoData2[6]);
             float bmpData[3];
-            bmp.pullBMPData(bmp, bmpData);
+            pullBMPData(bmp, bmpData);
             Serial.print(bmpData[0]);
             Serial.print(bmpData[1]);
             Serial.print(bmpData[2]);
