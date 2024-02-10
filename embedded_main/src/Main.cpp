@@ -99,7 +99,7 @@ bool rotateTo(float direction, int time){
 bool rotate(float amount){
   float bnoData3[7];
   pullBNOData(bno,bnoData3);
-  return rotateTo(bnoData3[6] + amount);
+  return rotateTo(bnoData3[6] + amount,10000);
 } 
 
 void goForwards(){
