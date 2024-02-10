@@ -20,6 +20,15 @@ using namespace std;
 
 #define LED_PIN 13 //Builtin LED pin for Teensy 4.1 (pin 25 for pi Pico)
 
+#define BMP_SCK 13
+#define BMP_MISO 12
+#define BMP_MOSI 11
+#define BMP_CS 10
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+Adafruit_BMP3XX bmp;
+
 //Sensor declarations
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
@@ -163,12 +172,23 @@ void setup() {
       Serial.println("!BNO failed to start...");
     }else{
       Serial.println("BNO055 Started Successfully");
+    }if(!bmp.begin_I2C()) {
+      Serial.println("bmp not working");
+    }else{
+      Serial.println("bmp is working");
     }
+
+  // Set up oversampling and filter initialization
+  bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+  bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
+  bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+  bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
   //Start heartbeat thread
   //TEMPORARY FIX, until we get a dedicated microcontroller for heartbeat propogation
   threads.addThread(loopHeartbeats);
 
+  
 }
 
 
