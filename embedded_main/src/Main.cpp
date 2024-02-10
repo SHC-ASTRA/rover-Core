@@ -71,7 +71,6 @@ bool rotateTo(float direction, int time){
   int expectedTime;
   float difference;
   pullBNOData(bno,bnoData);
-  difference = abs(direction - bnoData[6]);
   expectedTime = time;
   if(sin(direction - bnoData[6])>0){
     turningRight = 1;
