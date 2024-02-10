@@ -97,7 +97,9 @@ bool rotateTo(float direction, int time){
 
 
 bool rotate(float amount){
-  return rotateTo(bnoData[6] + amount);
+  float bnoData3[7];
+  pullBNOData(bno,bnoData3);
+  return rotateTo(bnoData3[6] + amount);
 } 
 
 void goForwards(){
@@ -380,7 +382,7 @@ void loop() {
         }else{
           //pass if command if control command is same as previous
         }
-    }}else if (token == "data") {                          
+    }else if (token == "data") {                          
         if(command != prevCommand)
         {
           scommand.erase(0, pos + delimiter.length());
