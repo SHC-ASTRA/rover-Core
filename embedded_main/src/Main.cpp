@@ -63,7 +63,7 @@ void turnCCW(){
 }
 
 
-bool rotateTo(float direction){
+bool rotateTo(float direction, int time){
   float bnoData[7];
   bool success = 0;
   bool turningRight;
@@ -72,7 +72,7 @@ bool rotateTo(float direction){
   float difference;
   bno.pullBNOData(bno,bnoData);
   difference = abs(direction - bnoData[6]);
-  expectedTime = difference * 500;
+  expectedTime = time;
   if(sin(direction - bnoData[6])>0){
     turningRight = 1;
   }else{
@@ -87,8 +87,10 @@ bool rotateTo(float direction){
      }
     }else{
       success = 1;
+      Stop();
     }
   }
+  Stop();
   return success;
 }
 
@@ -312,7 +314,8 @@ void loop() {
     command.trim();                                 // I don't know why this is here, but it is important
     string delimiter = ",";                         // The key that decides where the command should be split
     size_t pos = 0;                                 // Standard parse variable
-    string token;                                   // The current piece of the string being used.
+    string token;       
+    string token2;                            // The current piece of the string being used.
     string scommand = command.c_str();         // Converts the Arduino String into a C++ string since they are different things
     pos = scommand.find(delimiter);
     token = scommand.substr(0, pos);
@@ -359,7 +362,10 @@ void loop() {
             scommand.erase(0, pos + delimiter.length());
             pos = scommand.find(delimiter);
             token = scommand.substr(0, pos);
-            rotateTo(stoi(token));
+            scommand.erase(0, pos + delimiter.length());
+            pos = scommand.find(delimiter);
+            token2 = scommand.substr(0, pos);
+            rotateTo(stoi(token),stoi(token2));
           }else if(token == "forwards"){
             scommand.erase(0, pos + delimiter.length());
             goForwards();
