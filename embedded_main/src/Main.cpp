@@ -178,11 +178,7 @@ void setup() {
       Serial.println("bmp is working");
     }
 
-  // Set up oversampling and filter initialization
-  bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
-  bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
-  bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-  bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+  initializeBMP(bmp);
 
   //Start heartbeat thread
   //TEMPORARY FIX, until we get a dedicated microcontroller for heartbeat propogation
@@ -347,8 +343,12 @@ void loop() {
             //
           }else if(token == "sendBMP"){
             scommand.erase(0, pos + delimiter.length());
-            //
-          }else if(token == "something"){
+            float bmpData[3];
+            bmp.pullBMPData(bmp, bmpData);
+            Serial.print(bmpData[0]);
+            Serial.print(bmpData[1]);
+            Serial.print(bmpData[2]);
+          }else if(token == "everything"){
             scommand.erase(0, pos + delimiter.length());
             //
           }
