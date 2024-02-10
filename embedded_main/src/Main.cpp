@@ -29,6 +29,8 @@ using namespace std;
 
 Adafruit_BMP3XX bmp;
 
+SFE_UBLOX_GNSS myGNSS;
+
 //Sensor declarations
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
@@ -176,9 +178,65 @@ void setup() {
       Serial.println("bmp not working");
     }else{
       Serial.println("bmp is working");
+    }if(!myGNSS.begin()){
+      Serial.println("GPS not working");
+    }else{
+      Serial.println("GPS is working");
     }
 
   initializeBMP(bmp);
+
+
+
+
+myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
+
+  // Create storage for the time pulse parameters
+  UBX_CFG_TP5_data_t timePulseParameters;
+
+  // Get the time pulse parameters
+  if (myGNSS.getTimePulseParameters(&timePulseParameters) == false)
+  {
+    Serial.println(F("getTimePulseParameters failed! not Freezing..."));
+  }
+
+  // Print the CFG TP5 version
+  Serial.print(F("UBX_CFG_TP5 version: "));
+  Serial.println(timePulseParameters.version);
+
+  timePulseParameters.tpIdx = 0; // Select the TIMEPULSE pin
+  //timePulseParameters.tpIdx = 1; // Or we could select the TIMEPULSE2 pin instead, if the module has one
+
+  // We can configure the time pulse pin to produce a defined frequency or period
+  // Here is how to set the frequency:
+
+  // While the module is _locking_ to GNSS time, make it generate 2kHz
+  timePulseParameters.freqPeriod = 2000; // Set the frequency/period to 2000Hz
+  timePulseParameters.pulseLenRatio = 0x55555555; // Set the pulse ratio to 1/3 * 2^32 to produce 33:67 mark:space
+
+  // When the module is _locked_ to GNSS time, make it generate 1kHz
+  timePulseParameters.freqPeriodLock = 1000; // Set the frequency/period to 1000Hz
+  timePulseParameters.pulseLenRatioLock = 0x80000000; // Set the pulse ratio to 1/2 * 2^32 to produce 50:50 mark:space
+
+  timePulseParameters.flags.bits.active = 1; // Make sure the active flag is set to enable the time pulse. (Set to 0 to disable.)
+  timePulseParameters.flags.bits.lockedOtherSet = 1; // Tell the module to use freqPeriod while locking and freqPeriodLock when locked to GNSS time
+  timePulseParameters.flags.bits.isFreq = 1; // Tell the module that we want to set the frequency (not the period)
+  timePulseParameters.flags.bits.isLength = 0; // Tell the module that pulseLenRatio is a ratio / duty cycle (* 2^-32) - not a length (in us)
+  timePulseParameters.flags.bits.polarity = 1; // Tell the module that we want the rising edge at the top of second. (Set to 0 for falling edge.)
+
+  // Now set the time pulse parameters
+  if (myGNSS.setTimePulseParameters(&timePulseParameters) == false)
+  {
+    Serial.println(F("setTimePulseParameters failed!"));
+  }
+  else
+  {
+    Serial.println(F("Success!"));
+  }
+
+
+
+
 
   //Start heartbeat thread
   //TEMPORARY FIX, until we get a dedicated microcontroller for heartbeat propogation
@@ -325,11 +383,16 @@ void loop() {
 
 
           if(token == "sendGPS"){
+
             scommand.erase(0, pos + delimiter.length());
             float gpsData[3];
+            myGNSS.getPosition(myGNSS, gpsData);
+            Serial.print(gpsData[0]);
+            Serial.print(gpsData[1]);
+            Serial.print(gpsData[2]);
 
-            //
           }else if(token == "sendIMU"){
+
             scommand.erase(0, pos + delimiter.length());
             float bnoData2[7];
             bno.pullBNOData(bno,bnoData2);
@@ -340,17 +403,39 @@ void loop() {
             Serial.print(bnoData2[4]);
             Serial.print(bnoData2[5]);
             Serial.print(bnoData2[6]);
-            //
+
           }else if(token == "sendBMP"){
+
             scommand.erase(0, pos + delimiter.length());
             float bmpData[3];
             bmp.pullBMPData(bmp, bmpData);
             Serial.print(bmpData[0]);
             Serial.print(bmpData[1]);
             Serial.print(bmpData[2]);
+
           }else if(token == "everything"){
+
             scommand.erase(0, pos + delimiter.length());
-            //
+            float gpsData[3];
+            myGNSS.getPosition(myGNSS, gpsData);
+            Serial.print(gpsData[0]);
+            Serial.print(gpsData[1]);
+            Serial.print(gpsData[2]);
+            float bnoData2[7];
+            bno.pullBNOData(bno,bnoData2);
+            Serial.print(bnoData2[0]);
+            Serial.print(bnoData2[1]);
+            Serial.print(bnoData2[2]);
+            Serial.print(bnoData2[3]);
+            Serial.print(bnoData2[4]);
+            Serial.print(bnoData2[5]);
+            Serial.print(bnoData2[6]);
+            float bmpData[3];
+            bmp.pullBMPData(bmp, bmpData);
+            Serial.print(bmpData[0]);
+            Serial.print(bmpData[1]);
+            Serial.print(bmpData[2]);
+
           }
         }else{
           //pass if command if control command is same as previous
