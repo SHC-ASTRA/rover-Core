@@ -53,20 +53,22 @@ void turnCCW(){
 
 
 bool rotateTo(float direction){
+  float bnoData[7];
   bool success = 0;
   bool turningRight;
   int startTime = millis(); 
   int expectedTime;
   float difference;
-  //difference = abs(direction - /*get rotation*/);
+  bno.pullBNOData(bno,bnoData);
+  difference = abs(direction - bnoData[6]);
   expectedTime = difference * 500;
-  if(0/*sin(direction - get rotation)>0*/){
+  if(sin(direction - bnoData[6])>0){
     turningRight = 1;
   }else{
     turningRight = 0;
   }
   while(millis() - startTime < expectedTime){
-    if(0/*!((get rotation < direction + 2) && (get rotation > direction - 2))*/){
+    if(!((bnoData[6] < direction + 2) && (bnoData[6] > direction - 2))){
      if(turningRight){
        turnCW();
      }else{
@@ -81,7 +83,7 @@ bool rotateTo(float direction){
 
 
 bool rotate(float amount){
-  return rotateTo(/*get rotation*/ + amount);
+  return rotateTo(bnoData[6] + amount);
 } 
 
 void goForwards(){
