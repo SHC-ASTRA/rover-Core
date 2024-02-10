@@ -272,14 +272,6 @@ void loop() {
       token = scommand.substr(0, pos);
       pos = scommand.find(delimiter);
       //Motor1.setMotorMultiplier(stof(token));
-    } else if (token == "led_on") {
-      digitalWrite(LED_PIN, HIGH);
-    } else if (token == "led_off") {
-      digitalWrite(LED_PIN, LOW);
-    } else if (token == "ping") {
-      Serial.println("pong");
-    } else if (token == "time") {
-      Serial.println(millis());
     }else if (token == "auto") {                          
         if(command != prevCommand)
         {
@@ -307,6 +299,50 @@ void loop() {
         }else{
           //pass if command if control command is same as previous
         }
+    }}else if (token == "data") {                          
+        if(command != prevCommand)
+        {
+          scommand.erase(0, pos + delimiter.length());
+          prevCommand = command;
+          pos = scommand.find(delimiter);
+          token = scommand.substr(0, pos);
+
+
+          if(token == "sendGPS"){
+            scommand.erase(0, pos + delimiter.length());
+            float gpsData[3];
+
+            //
+          }else if(token == "sendIMU"){
+            scommand.erase(0, pos + delimiter.length());
+            float bnoData2[7];
+            bno.pullBNOData(bno,bnoData2);
+            Serial.print(bnoData2[0]);
+            Serial.print(bnoData2[1]);
+            Serial.print(bnoData2[2]);
+            Serial.print(bnoData2[3]);
+            Serial.print(bnoData2[4]);
+            Serial.print(bnoData2[5]);
+            Serial.print(bnoData2[6]);
+            //
+          }else if(token == "sendBMP"){
+            scommand.erase(0, pos + delimiter.length());
+            //
+          }else if(token == "something"){
+            scommand.erase(0, pos + delimiter.length());
+            //
+          }
+        }else{
+          //pass if command if control command is same as previous
+        }
+    } else if (token == "led_on") {
+      digitalWrite(LED_PIN, HIGH);
+    } else if (token == "led_off") {
+      digitalWrite(LED_PIN, LOW);
+    } else if (token == "ping") {
+      Serial.println("pong");
+    } else if (token == "time") {
+      Serial.println(millis());
     }
 
 
