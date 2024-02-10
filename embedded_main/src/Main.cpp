@@ -62,6 +62,12 @@ void turnCCW(){
   motorList[3].setDuty(0.2);
 }
 
+void Stop(){
+  motorList[0].setDuty(0);
+  motorList[1].setDuty(0);
+  motorList[2].setDuty(0);
+  motorList[3].setDuty(0);
+}
 
 bool rotateTo(float direction, int time){
   float bnoData[7];
@@ -69,7 +75,6 @@ bool rotateTo(float direction, int time){
   bool turningRight;
   int startTime = millis(); 
   int expectedTime;
-  float difference;
   pullBNOData(bno,bnoData);
   expectedTime = time;
   if(sin(direction - bnoData[6])>0){
@@ -115,12 +120,7 @@ void goBackwards(){
   motorList[3].setDuty(-0.2);
 }
 
-void Stop(){
-  motorList[0].setDuty(0);
-  motorList[1].setDuty(0);
-  motorList[2].setDuty(0);
-  motorList[3].setDuty(0);
-}
+
 
 
 unsigned long lastAccel;
