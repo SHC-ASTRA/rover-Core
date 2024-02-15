@@ -15,7 +15,7 @@ class BaseStation(Node):
         # Initalize node with name
         super().__init__("test_bs")
 
-        self.create_timer(0.25, self.send_controls)
+        self.create_timer(0.10, self.send_controls)
 
 
         # Create a publisher to publish any output the pico sends
@@ -42,9 +42,12 @@ class BaseStation(Node):
                 pygame.quit()
                 exit()
 
-        # Initialize the first gamepad
+        # Initialize the first gamepad, print name to terminal
         self.gamepad = pygame.joystick.Joystick(0)
         self.gamepad.init()
+        print(f'Gamepad Found: {self.gamepad.get_name()}')
+        #
+        #
 
 
     def run(self):
@@ -71,13 +74,18 @@ class BaseStation(Node):
                 pygame.quit()
                 exit()
 
-        left_x = self.gamepad.get_axis(0)
-        left_y = self.gamepad.get_axis(1)
-        right_x = self.gamepad.get_axis(2)
-        right_y = self.gamepad.get_axis(3)
 
+        left_x = self.gamepad.get_axis(0)#left x-axis
+        left_y = self.gamepad.get_axis(1)#lext y-axis
+        left_t = self.gamepad.get_axis(2)#left trigger
+        right_x = self.gamepad.get_axis(3)#right x-axis
+        right_y = self.gamepad.get_axis(4)#right y-axis
+        right_t = self.gamepad.get_axis(5)#right trigger
 
-        output = f'ctrl,{round(left_y,4)},{round(right_y,4)}'
+        if right_t > 0:#single-stick control mode
+            output = f'ctrl,{round(right_y,4)},{round(right_y,4)}'
+        else:
+            output = f'ctrl,{round(left_y,4)},{round(right_y,4)}'
 
         #print(f"[Controls] {output}", end="")
         self.get_logger().info(f"[Ctrl] {output}")
