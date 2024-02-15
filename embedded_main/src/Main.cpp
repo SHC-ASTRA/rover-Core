@@ -172,6 +172,8 @@ void setup() {
     Can0.enableFIFO();
     Can0.enableFIFOInterrupt();
 
+
+    pinMode(20, INPUT_PULLUP);
   //--------------------//
   // Initialize Sensors //
   //--------------------//
