@@ -138,13 +138,13 @@ void loopHeartbeats(){
 
     while(1){
       sendHeartbeat(Can0, 1);
-      threads.delay(30);
+      threads.delay(3);
       sendHeartbeat(Can0, 2);
-      threads.delay(30);
+      threads.delay(3);
       sendHeartbeat(Can0, 3);
-      threads.delay(30);
+      threads.delay(3);
       sendHeartbeat(Can0, 4);
-      threads.delay(30);
+      threads.delay(3);
       threads.yield();
     }
 
