@@ -46,6 +46,8 @@ AstraMotors Motor4(3, 1, true, 50, 0.50F);//BR
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
 
+long thing = millis();
+
 
 void turnCW(){
   motorList[0].setDuty(0.2);
@@ -256,6 +258,7 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
 //------------//
 
 void loop() {
+  Serial.print("Thing");
   // Required To make the bmp not do stupid shit,
   // I am keeping it in this version so that I don't forget about it
   //Serial.println(bmp.temperature);
@@ -330,6 +333,29 @@ void loop() {
 
           prevCommand = command;
 
+          
+          if((millis()-thing)>1000){
+
+          float bnoData2[7];
+            pullBNOData(bno,bnoData2);
+            Serial.print(bnoData2[0]);
+            Serial.print(bnoData2[1]);
+            Serial.print(bnoData2[2]);
+            Serial.print(bnoData2[3]);
+            Serial.print(bnoData2[4]);
+            Serial.print(bnoData2[5]);
+            Serial.print(bnoData2[6]);
+            thing = millis();
+          }
+
+          /*
+
+
+
+
+
+
+
           for(int i = 0; i < 3; i+= 2){
             token = scommand.substr(0, pos);
             pos = scommand.find(delimiter);
@@ -340,9 +366,11 @@ void loop() {
             Serial.print(i);
             Serial.print("]: ");
             Serial.println(stof(token)); 
-            */
+            
             scommand.erase(0, pos + delimiter.length());
           }
+
+          */
         }else{
           //pass if command if control command is same as previous
         }
