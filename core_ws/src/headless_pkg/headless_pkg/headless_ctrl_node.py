@@ -12,10 +12,10 @@ import glob
 
 from std_msgs.msg import String
 
-class BaseStation(Node):
+class Headless(Node):
     def __init__(self):
         # Initalize node with name
-        super().__init__("test_bs")
+        super().__init__("headless_ctrl")
 
         self.create_timer(0.10, self.send_controls)
 
@@ -141,7 +141,7 @@ class BaseStation(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    node = BaseStation()
+    node = Headless()
     
     rclpy.spin(node)
     rclpy.shutdown()
