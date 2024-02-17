@@ -69,10 +69,10 @@ class Headless(Node):
                 self.read_feedback()
                 if pygame.joystick.get_count() == 0: #if controller disconnected, wait for it to be reconnected
                     print(f"Gamepad disconnected: {self.gamepad.get_name()}")
-
+                    
                     while pygame.joystick.get_count() == 0:
+                        self.send_controls()
                         self.read_feedback()
-
                     self.gamepad = pygame.joystick.Joystick(0)
                     self.gamepad.init() #re-initialized gamepad
                     print(f"Gamepad reconnected: {self.gamepad.get_name()}")
@@ -98,11 +98,14 @@ class Headless(Node):
         right_t = self.gamepad.get_axis(5)#right trigger
 
 
-
-        if right_t > 0:#single-stick control mode
-            output = f'ctrl,{round(right_y,4)},{round(right_y,4)}'
+        if self.gamepad == pygame.joystick.get_count() != 0:
+        
+            if right_t > 0:#single-stick control mode
+                output = f'ctrl,{round(right_y,4)},{round(right_y,4)}'
+            else:
+                output = f'ctrl,{round(left_y,4)},{round(right_y,4)}'
         else:
-            output = f'ctrl,{round(left_y,4)},{round(right_y,4)}'
+            output = 'ctrl,0,0' #stop the rover if there is no controller connected
 
 
         #print(f"[Controls] {output}", end="")
@@ -133,7 +136,7 @@ class Headless(Node):
         # Publish data
         #self.publisher.publish(msg.data)
         
-        print(f"[Pico] {msg.data}", end="")
+        print(f"[MCU] {msg.data}", end="")
         #print(f"[Pico] Publishing: {msg}")
 
         
