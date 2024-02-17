@@ -366,6 +366,17 @@ void outputBno()
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
   printf("bno,%f,%f,%f,%f,%f,%f,%f\n",bnoData2[0],bnoData2[1],bnoData[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+  /*
+  bno_data[0] = event.gyro.x;//pitch
+  bno_data[1] = event.gyro.z;//roll
+  bno_data[2] = event.gyro.y;//yaw
+
+  bno_data[3] = event.acceleration.x;//pitch
+  bno_data[4] = event.acceleration.z;//roll
+  bno_data[5] = event.acceleration.y;//yaw
+
+  bno_data[6] = event.orientation.x;//Absolute Orientation/Heading 
+  */
 }
 
 void outputGPS()
@@ -373,6 +384,11 @@ void outputGPS()
   float gpsData[3];
   getPosition(myGNSS, gpsData);
   printf("gps,%f,%f,%f\n",gpsData[0],gpsData[1],gpsData[2]);
+  /*
+  gps_data[0] = myGNSS.getLatitude()/10000000.0;
+    gps_data[1] = myGNSS.getLongitude()/10000000.0;
+    gps_data[2] = uint8_t(myGNSS.getSIV());
+  */
 }
 
 void outputBmp()
@@ -380,6 +396,11 @@ void outputBmp()
   float bmpData[3];
   pullBMPData(bmp, bmpData);
   printf("bmp,%f,%f,%f\n",bmpData[0],bmpData[1],bmpData[2]);
+  /*
+  bmp_data[0] = bmp.temperature;
+  bmp_data[1] = bmp.pressure/100.0;
+  bmp_data[2] = bmp.readAltitude(SEALEVELPRESSURE_HPA);
+  */
 }
 
 void turnCW(){
