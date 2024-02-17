@@ -293,9 +293,9 @@ void loop() {
             success = rotateTo(stof(token),stoi(token2));
             if(success)
             {
-              println("turningTo,success");
+              Serial.println("turningTo,success");
             }else{
-              println("turningTo,fail");
+              Serial.println("turningTo,fail");
             }
           }else if(token == "forwards"){
             scommand.erase(0, pos + delimiter.length());
@@ -466,7 +466,6 @@ void loopHeartbeats(){
 
 
 bool rotateTo(float direction, int time){
-  bool success = false;
   bool turningRight;
   int startTime = millis(); 
   int expectedTime;
