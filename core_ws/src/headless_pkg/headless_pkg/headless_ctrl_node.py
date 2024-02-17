@@ -25,7 +25,7 @@ class Headless(Node):
 
         # Create a subscriber to listen to any commands sent for the pico
         self.subscriber = self.create_subscription(String, '/astra/core/feedback', self.read_feedback, 10)
-        self.subscriber
+        #self.subscriber
 
 
         self.lastMsg = String() #Used to ignore sending controls repeatedly when they do not change
