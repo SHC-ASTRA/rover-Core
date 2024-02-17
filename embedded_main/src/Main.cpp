@@ -365,7 +365,7 @@ void outputBno()
 {
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
-  printf("bno,%f,%f,%f,%f,%f,%f,%f\n",bnoData2[0],bnoData2[1],bnoData[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+  printf("bno,%f,%f,%f,%f,%f,%f,%f\n",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
   /*
   bno_data[0] = event.gyro.x;//pitch
   bno_data[1] = event.gyro.z;//roll
@@ -404,18 +404,18 @@ void outputBmp()
 }
 
 void turnCW(){
-  motorList[0].setDuty(0.2);
-  motorList[1].setDuty(0.2);
-  motorList[2].setDuty(-0.2);
-  motorList[3].setDuty(-0.2);
+  sendDutyCycle(Can0, motorList[0].getID(), 0.2);
+  sendDutyCycle(Can0, motorList[1].getID(), 0.2);
+  sendDutyCycle(Can0, motorList[2].getID(), 0.2);
+  sendDutyCycle(Can0, motorList[3].getID(), 0.2);
 }
 
 
 void turnCCW(){
-  motorList[0].setDuty(-0.2);
-  motorList[1].setDuty(-0.2);
-  motorList[2].setDuty(0.2);
-  motorList[3].setDuty(0.2);
+  sendDutyCycle(Can0, motorList[0].getID(), -0.2);
+  sendDutyCycle(Can0, motorList[1].getID(), -0.2);
+  sendDutyCycle(Can0, motorList[2].getID(), -0.2);
+  sendDutyCycle(Can0, motorList[3].getID(), -0.2);
 }
 
 void Stop(){
@@ -492,16 +492,10 @@ bool rotateTo(float direction, int time){
       Serial.print("Currently at: ");
       Serial.println(getBNOOrient(bno));
       if(turningRight){
-        sendDutyCycle(Can0, motorList[0].getID(), 0.2);
-        sendDutyCycle(Can0, motorList[1].getID(), 0.2);
-        sendDutyCycle(Can0, motorList[2].getID(), 0.2);
-        sendDutyCycle(Can0, motorList[3].getID(), 0.2);
+        turnCW();
         //Serial.println("turning clockwise");
       }else{
-        sendDutyCycle(Can0, motorList[0].getID(), -0.2);
-        sendDutyCycle(Can0, motorList[1].getID(), -0.2);
-        sendDutyCycle(Can0, motorList[2].getID(), -0.2);
-        sendDutyCycle(Can0, motorList[3].getID(), -0.2);
+        turnCCW();
         //Serial.println("turning counter clockwise");
       }
     }else{
