@@ -65,10 +65,10 @@ void turnCCW(){
 }
 
 void Stop(){
-  motorList[0].setDuty(0);
-  motorList[1].setDuty(0);
-  motorList[2].setDuty(0);
-  motorList[3].setDuty(0);
+  sendDutyCycle(Can0, motorList[0].getID(), 0);
+  sendDutyCycle(Can0, motorList[1].getID(), 0);
+  sendDutyCycle(Can0, motorList[2].getID(), 0);
+  sendDutyCycle(Can0, motorList[3].getID(), 0);
 }
 
 
@@ -136,26 +136,28 @@ bool rotateTo(float direction, int time){
   }else{
     turningRight = 0;
   }
-  Serial.println("Turning Right?");
-  Serial.print(sin(direction - getBNOOrient(bno))>0);
+  //Serial.println("Turning Right?");
+  //Serial.print(sin(direction - getBNOOrient(bno))>0);
   while(millis() - startTime < expectedTime){
-    Serial.println("Not gone over time?");
-    Serial.print(millis() - startTime < expectedTime);
+    //Serial.println("Not gone over time?");
+    //Serial.print(millis() - startTime < expectedTime);
     if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))){
-      Serial.println("Not close to the thing?");
-      Serial.print(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2)));
+      Serial.print("Turning to: ");
+      Serial.println(direction);
+      Serial.print("Currently at: ");
+      Serial.println(getBNOOrient(bno));
       if(turningRight){
-        motorList[0].setDuty(-0.2);
-        motorList[1].setDuty(-0.2);
-        motorList[2].setDuty(0.2);
-        motorList[3].setDuty(0.2);
-        Serial.println("turning clockwise");
+        sendDutyCycle(Can0, motorList[0].getID(), 0.2);
+        sendDutyCycle(Can0, motorList[1].getID(), 0.2);
+        sendDutyCycle(Can0, motorList[2].getID(), 0.2);
+        sendDutyCycle(Can0, motorList[3].getID(), 0.2);
+        //Serial.println("turning clockwise");
       }else{
-        motorList[0].setDuty(0.2);
-        motorList[1].setDuty(0.2);
-        motorList[2].setDuty(-0.2);
-        motorList[3].setDuty(-0.2);
-        Serial.println("turning counter clockwise");
+        sendDutyCycle(Can0, motorList[0].getID(), -0.2);
+        sendDutyCycle(Can0, motorList[1].getID(), -0.2);
+        sendDutyCycle(Can0, motorList[2].getID(), -0.2);
+        sendDutyCycle(Can0, motorList[3].getID(), -0.2);
+        //Serial.println("turning counter clockwise");
       }
     }else{
       success = 1;
@@ -324,7 +326,7 @@ void loop() {
       clockTimer = millis();
       Serial.println("clock");
       //motorList[3].setDuty(0.2);
-      rotateTo(90, 15000);
+      //rotateTo(90, 15000);
       //turnCCW();
     }
   }
