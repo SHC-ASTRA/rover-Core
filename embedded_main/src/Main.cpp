@@ -46,7 +46,7 @@ AstraMotors Motor4(3, 1, true, 50, 0.50F);//BR
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
 
-long thing = millis();
+
 
 
 void turnCW(){
@@ -71,48 +71,16 @@ void Stop(){
   motorList[3].setDuty(0);
 }
 
-bool rotateTo(float direction, int time){
-  float bnoData[7];
-  bool success = 0;
-  bool turningRight;
-  int startTime = millis(); 
-  int expectedTime;
-  pullBNOData(bno,bnoData);
-  expectedTime = time;
-  if(sin(direction - bnoData[6])>0){
-    turningRight = 1;
-  }else{
-    turningRight = 0;
-  }
-  while(millis() - startTime < expectedTime){
-    pullBNOData(bno,bnoData);
-    if(!((bnoData[6] < direction + 2) && (bnoData[6] > direction - 2))){
-     if(turningRight){
-       turnCW();
-     }else{
-       turnCCW();
-     }
-    }else{
-      success = 1;
-      Stop();
-    }
-  }
-  Stop();
-  return success;
-}
 
 
-bool rotate(float amount){
-  float bnoData3[7];
-  pullBNOData(bno,bnoData3);
-  return rotateTo(bnoData3[6] + amount,10000);
-} 
 
-void goForwards(){
-  motorList[0].setDuty(0.2);
-  motorList[1].setDuty(0.2);
-  motorList[2].setDuty(0.2);
-  motorList[3].setDuty(0.2);
+
+
+void goForwards(float speed){
+  motorList[0].setDuty(speed);
+  motorList[1].setDuty(speed);
+  motorList[2].setDuty(speed);
+  motorList[3].setDuty(speed);
 }
 
 void goBackwards(){
@@ -130,6 +98,9 @@ unsigned long lastDuty;
 unsigned long lastHB;
 
 unsigned long lastIdentify;
+
+unsigned long thing = millis();
+unsigned long clockTimer = millis();
 
 void loopHeartbeats(){
     Can0.begin();
@@ -151,6 +122,60 @@ void loopHeartbeats(){
     }
 
 }
+
+
+
+bool rotateTo(float direction, int time){
+  bool success = 0;
+  bool turningRight;
+  int startTime = millis(); 
+  int expectedTime;
+  expectedTime = time;
+  if(sin(direction - getBNOOrient(bno))>0){
+    turningRight = 1;
+  }else{
+    turningRight = 0;
+  }
+  Serial.println("Turning Right?");
+  Serial.print(sin(direction - getBNOOrient(bno))>0);
+  while(millis() - startTime < expectedTime){
+    Serial.println("Not gone over time?");
+    Serial.print(millis() - startTime < expectedTime);
+    if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))){
+      Serial.println("Not close to the thing?");
+      Serial.print(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2)));
+      if(turningRight){
+        motorList[0].setDuty(-0.2);
+        motorList[1].setDuty(-0.2);
+        motorList[2].setDuty(0.2);
+        motorList[3].setDuty(0.2);
+        Serial.println("turning clockwise");
+      }else{
+        motorList[0].setDuty(0.2);
+        motorList[1].setDuty(0.2);
+        motorList[2].setDuty(-0.2);
+        motorList[3].setDuty(-0.2);
+        Serial.println("turning counter clockwise");
+      }
+    }else{
+      success = 1;
+      Stop();
+    }
+  }
+  Stop();
+  return success;
+}
+
+
+
+bool rotate(float amount){
+  float bnoData3[7];
+  pullBNOData(bno,bnoData3);
+  //return rotateTo(bnoData3[6] + amount,10000);
+} 
+
+
+
 
 
 void setup() {
@@ -281,28 +306,29 @@ void loop() {
           sendDutyCycle(Can0, motorList[i].getID(), motorList[i].getDuty());
           //Serial.println("Sending Duty Cycle");
         }
-        /* Debug print duty cycles every 1 second
-        if(millis()-lastDuty >= 1000)
-        {
-          lastDuty = millis();
-          
-          Serial.print("Duty1: ");
-          Serial.print(motorList[0].getDuty());
-          Serial.print("\tDuty2: ");
-          Serial.println(motorList[1].getDuty());
-
-          Serial.print("Duty3: ");
-          Serial.print(motorList[2].getDuty());
-          Serial.print("\tDuty4: ");
-          Serial.println(motorList[3].getDuty());
-        }
-        */
+        
     }else{
         //pass for RPM control mode
     }
  
 
   }
+
+  //----------------------------------//
+  // Runs something at a set interval //
+  // Useful for testing               //
+  //----------------------------------//
+
+  if(1){
+    if((millis()-clockTimer)>30000){
+      clockTimer = millis();
+      Serial.println("clock");
+      //motorList[3].setDuty(0.2);
+      rotateTo(90, 15000);
+      //turnCCW();
+    }
+  }
+
 
 
   //------------------//
@@ -385,15 +411,15 @@ void loop() {
 
           if(token == "turningTo"){
             scommand.erase(0, pos + delimiter.length());
-            pos = scommand.find(delimiter);
+            pos = scommand.find(delimiter); 
             token = scommand.substr(0, pos);
             scommand.erase(0, pos + delimiter.length());
             pos = scommand.find(delimiter);
             token2 = scommand.substr(0, pos);
-            rotateTo(stoi(token),stoi(token2));
+            //rotateTo(stoi(token),stoi(token2));
           }else if(token == "forwards"){
             scommand.erase(0, pos + delimiter.length());
-            goForwards();
+            goForwards(0.2);
           }else if(token == "backwards"){
             scommand.erase(0, pos + delimiter.length());
             goBackwards();
