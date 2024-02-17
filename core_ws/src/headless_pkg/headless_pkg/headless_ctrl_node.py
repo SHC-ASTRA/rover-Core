@@ -98,7 +98,7 @@ class Headless(Node):
         right_t = self.gamepad.get_axis(5)#right trigger
 
 
-        if self.gamepad == pygame.joystick.get_count() != 0:
+        if pygame.joystick.get_count() != 0:
         
             if right_t > 0:#single-stick control mode
                 output = f'ctrl,{round(right_y,4)},{round(right_y,4)}'
