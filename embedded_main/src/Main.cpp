@@ -46,49 +46,20 @@ AstraMotors Motor4(3, 1, true, 50, 0.50F);//BR
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
 
+//Prototypes
+void rotate(float amount);
+bool rotateTo(float direction, int time);
+void turnCW();
+void turnCCW();
+void Stop();
+void goForwards(float speed);
+void goBackwards(float speed);
+void loopHeartbeats();
+void outputBno();
+void outputBmp();
+void outputGPS();
 
 
-
-void turnCW(){
-  motorList[0].setDuty(0.2);
-  motorList[1].setDuty(0.2);
-  motorList[2].setDuty(-0.2);
-  motorList[3].setDuty(-0.2);
-}
-
-
-void turnCCW(){
-  motorList[0].setDuty(-0.2);
-  motorList[1].setDuty(-0.2);
-  motorList[2].setDuty(0.2);
-  motorList[3].setDuty(0.2);
-}
-
-void Stop(){
-  sendDutyCycle(Can0, motorList[0].getID(), 0);
-  sendDutyCycle(Can0, motorList[1].getID(), 0);
-  sendDutyCycle(Can0, motorList[2].getID(), 0);
-  sendDutyCycle(Can0, motorList[3].getID(), 0);
-}
-
-
-
-
-
-
-void goForwards(float speed){
-  motorList[0].setDuty(speed);
-  motorList[1].setDuty(speed);
-  motorList[2].setDuty(speed);
-  motorList[3].setDuty(speed);
-}
-
-void goBackwards(){
-  motorList[0].setDuty(-0.2);
-  motorList[1].setDuty(-0.2);
-  motorList[2].setDuty(-0.2);
-  motorList[3].setDuty(-0.2);
-}
 
 
 
@@ -101,88 +72,6 @@ unsigned long lastIdentify;
 
 unsigned long thing = millis();
 unsigned long clockTimer = millis();
-
-void loopHeartbeats(){
-    Can0.begin();
-    Can0.setBaudRate(1000000);
-    Can0.setMaxMB(16);
-    Can0.enableFIFO();
-    Can0.enableFIFOInterrupt();
-
-    while(1){
-      sendHeartbeat(Can0, 1);
-      threads.delay(3);
-      sendHeartbeat(Can0, 2);
-      threads.delay(3);
-      sendHeartbeat(Can0, 3);
-      threads.delay(3);
-      sendHeartbeat(Can0, 4);
-      threads.delay(3);
-      threads.yield();
-    }
-
-}
-
-
-
-bool rotateTo(float direction, int time){
-  bool success = 0;
-  bool turningRight;
-  int startTime = millis(); 
-  int expectedTime;
-  expectedTime = time;
-  if(sin(direction - getBNOOrient(bno))>0){
-    turningRight = 1;
-  }else{
-    turningRight = 0;
-  }
-  //Serial.println("Turning Right?");
-  //Serial.print(sin(direction - getBNOOrient(bno))>0);
-  while(millis() - startTime < expectedTime){
-    //Serial.println("Not gone over time?");
-    //Serial.print(millis() - startTime < expectedTime);
-    if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))&&!(success)){
-      if(sin(direction - getBNOOrient(bno))>0){
-        turningRight = 1;
-      }else{
-        turningRight = 0;
-      }
-      Serial.print("Turning to: ");
-      Serial.println(direction);
-      Serial.print("Currently at: ");
-      Serial.println(getBNOOrient(bno));
-      if(turningRight){
-        sendDutyCycle(Can0, motorList[0].getID(), 0.2);
-        sendDutyCycle(Can0, motorList[1].getID(), 0.2);
-        sendDutyCycle(Can0, motorList[2].getID(), 0.2);
-        sendDutyCycle(Can0, motorList[3].getID(), 0.2);
-        //Serial.println("turning clockwise");
-      }else{
-        sendDutyCycle(Can0, motorList[0].getID(), -0.2);
-        sendDutyCycle(Can0, motorList[1].getID(), -0.2);
-        sendDutyCycle(Can0, motorList[2].getID(), -0.2);
-        sendDutyCycle(Can0, motorList[3].getID(), -0.2);
-        //Serial.println("turning counter clockwise");
-      }
-    }else{
-      success = 1;
-      Stop();
-    }
-  }
-  Stop();
-  return success;
-}
-
-
-
-bool rotate(float amount){
-  float bnoData3[7];
-  pullBNOData(bno,bnoData3);
-  //return rotateTo(bnoData3[6] + amount,10000);
-} 
-
-
-
 
 
 void setup() {
@@ -275,13 +164,9 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
   }
 
 
-
-
-
   //Start heartbeat thread
   //TEMPORARY FIX, until we get a dedicated microcontroller for heartbeat propogation
   threads.addThread(loopHeartbeats);
-
   
 }
 
@@ -292,11 +177,7 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
 //------------//
 
 void loop() {
-  // Required To make the bmp not do stupid shit,
-  // I am keeping it in this version so that I don't forget about it
-  //Serial.println(bmp.temperature);
   
-
   // Accelerate the motors
   if(millis()-lastAccel >= 50){
     lastAccel = millis();
@@ -309,17 +190,15 @@ void loop() {
     {
         for(int i = 0; i < 4; i++)
         {
-          //sendHeartbeat(Can0, i+1);
           sendDutyCycle(Can0, motorList[i].getID(), motorList[i].getDuty());
-          //Serial.println("Sending Duty Cycle");
         }
         
     }else{
         //pass for RPM control mode
     }
  
-
   }
+
 
   //----------------------------------//
   // Runs something at a set interval //
@@ -335,7 +214,6 @@ void loop() {
       //turnCCW();
     }
   }
-
 
 
   //------------------//
@@ -375,25 +253,11 @@ void loop() {
             thing = millis();
           }
 
-          
-
-
-
-
-
-
-
           for(int i = 0; i < 3; i+= 2){
             token = scommand.substr(0, pos);
             pos = scommand.find(delimiter);
             motorList[i].setDuty(stof(token));
             motorList[i+1].setDuty(stof(token));
-            /*
-            Serial.print("SetDUTY [");
-            Serial.print(i);
-            Serial.print("]: ");
-            Serial.println(stof(token)); 
-            */
             
             scommand.erase(0, pos + delimiter.length());
           }
@@ -425,13 +289,10 @@ void loop() {
             token2 = scommand.substr(0, pos);
             //rotateTo(stoi(token),stoi(token2));
           }else if(token == "forwards"){
-            scommand.erase(0, pos + delimiter.length());
             goForwards(0.2);
           }else if(token == "backwards"){
-            scommand.erase(0, pos + delimiter.length());
             goBackwards();
           }else if(token == "stop"){
-            scommand.erase(0, pos + delimiter.length());
             Stop();
           }
         }else{
@@ -447,62 +308,24 @@ void loop() {
 
           if(token == "sendGPS"){
 
-            scommand.erase(0, pos + delimiter.length());
-            float gpsData[3];
-            getPosition(myGNSS, gpsData);
-            Serial.print(gpsData[0]);
-            Serial.print(gpsData[1]);
-            Serial.print(gpsData[2]);
+            outputGPS();
 
           }else if(token == "sendIMU"){
 
-            scommand.erase(0, pos + delimiter.length());
-            float bnoData2[7];
-            pullBNOData(bno,bnoData2);
-            Serial.print(bnoData2[0]);
-            Serial.print(bnoData2[1]);
-            Serial.print(bnoData2[2]);
-            Serial.print(bnoData2[3]);
-            Serial.print(bnoData2[4]);
-            Serial.print(bnoData2[5]);
-            Serial.print(bnoData2[6]);
+            outputBno();
 
           }else if(token == "sendBMP"){
 
-            scommand.erase(0, pos + delimiter.length());
-            float bmpData[3];
-            pullBMPData(bmp, bmpData);
-            Serial.print(bmpData[0]);
-            Serial.print(bmpData[1]);
-            Serial.print(bmpData[2]);
+            outputBmp();
 
           }else if(token == "everything"){
 
-            scommand.erase(0, pos + delimiter.length());
-            float gpsData[3];
-            getPosition(myGNSS, gpsData);
-            Serial.print(gpsData[0]);
-            Serial.print(gpsData[1]);
-            Serial.print(gpsData[2]);
-            float bnoData2[7];
-            pullBNOData(bno,bnoData2);
-            Serial.print(bnoData2[0]);
-            Serial.print(bnoData2[1]);
-            Serial.print(bnoData2[2]);
-            Serial.print(bnoData2[3]);
-            Serial.print(bnoData2[4]);
-            Serial.print(bnoData2[5]);
-            Serial.print(bnoData2[6]);
-            float bmpData[3];
-            pullBMPData(bmp, bmpData);
-            Serial.print(bmpData[0]);
-            Serial.print(bmpData[1]);
-            Serial.print(bmpData[2]);
+            outputGPS();
+            outputBno();
+            outputBmp();
 
           }else if(token == "getOrientation"){
-            //string temp = "Orientation, ";
-            //temp = temp + getBNOOrient(bno);
-            Serial.printf("Orientation,%f\n", getBNOOrient(bno));
+            Serial.printf("orientation,%f\n", getBNOOrient(bno));
           }
         
     } else if (token == "led_on") {
@@ -519,3 +342,143 @@ void loop() {
   }
 
 }
+
+
+void outputBno()
+{
+  float bnoData2[7];
+  pullBNOData(bno,bnoData2);
+  printf("bno,%f,%f,%f,%f,%f,%f,%f\n",bnoData2[0],bnoData2[1],bnoData[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+}
+
+void outputGPS()
+{
+  float gpsData[3];
+  getPosition(myGNSS, gpsData);
+  printf("gps,%f,%f,%f\n",gpsData[0],gpsData[1],gpsData[2]);
+}
+
+void outputBmp()
+{
+  float bmpData[3];
+  pullBMPData(bmp, bmpData);
+  printf("bmp,%f,%f,%f\n",bmpData[0],bmpData[1],bmpData[2]);
+}
+
+void turnCW(){
+  motorList[0].setDuty(0.2);
+  motorList[1].setDuty(0.2);
+  motorList[2].setDuty(-0.2);
+  motorList[3].setDuty(-0.2);
+}
+
+
+void turnCCW(){
+  motorList[0].setDuty(-0.2);
+  motorList[1].setDuty(-0.2);
+  motorList[2].setDuty(0.2);
+  motorList[3].setDuty(0.2);
+}
+
+void Stop(){
+  sendDutyCycle(Can0, motorList[0].getID(), 0);
+  sendDutyCycle(Can0, motorList[1].getID(), 0);
+  sendDutyCycle(Can0, motorList[2].getID(), 0);
+  sendDutyCycle(Can0, motorList[3].getID(), 0);
+}
+
+
+void goForwards(float speed){
+  motorList[0].setDuty(speed);
+  motorList[1].setDuty(speed);
+  motorList[2].setDuty(speed);
+  motorList[3].setDuty(speed);
+}
+
+void goBackwards(float speed){
+  float temp = (-1) * speed;
+  motorList[0].setDuty(temp);
+  motorList[1].setDuty(temp);
+  motorList[2].setDuty(temp);
+  motorList[3].setDuty(temp);
+}
+
+
+void loopHeartbeats(){
+    Can0.begin();
+    Can0.setBaudRate(1000000);
+    Can0.setMaxMB(16);
+    Can0.enableFIFO();
+    Can0.enableFIFOInterrupt();
+
+    while(1){
+      sendHeartbeat(Can0, 1);
+      threads.delay(3);
+      sendHeartbeat(Can0, 2);
+      threads.delay(3);
+      sendHeartbeat(Can0, 3);
+      threads.delay(3);
+      sendHeartbeat(Can0, 4);
+      threads.delay(3);
+      threads.yield();
+    }
+
+}
+
+
+
+bool rotateTo(float direction, int time){
+  bool success = 0;
+  bool turningRight;
+  int startTime = millis(); 
+  int expectedTime;
+  expectedTime = time;
+  if(sin(direction - getBNOOrient(bno))>0){
+    turningRight = 1;
+  }else{
+    turningRight = 0;
+  }
+  //Serial.println("Turning Right?");
+  //Serial.print(sin(direction - getBNOOrient(bno))>0);
+  while(millis() - startTime < expectedTime){
+    //Serial.println("Not gone over time?");
+    //Serial.print(millis() - startTime < expectedTime);
+    if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))&&!(success)){
+      if(sin(direction - getBNOOrient(bno))>0){
+        turningRight = 1;
+      }else{
+        turningRight = 0;
+      }
+      Serial.print("Turning to: ");
+      Serial.println(direction);
+      Serial.print("Currently at: ");
+      Serial.println(getBNOOrient(bno));
+      if(turningRight){
+        sendDutyCycle(Can0, motorList[0].getID(), 0.2);
+        sendDutyCycle(Can0, motorList[1].getID(), 0.2);
+        sendDutyCycle(Can0, motorList[2].getID(), 0.2);
+        sendDutyCycle(Can0, motorList[3].getID(), 0.2);
+        //Serial.println("turning clockwise");
+      }else{
+        sendDutyCycle(Can0, motorList[0].getID(), -0.2);
+        sendDutyCycle(Can0, motorList[1].getID(), -0.2);
+        sendDutyCycle(Can0, motorList[2].getID(), -0.2);
+        sendDutyCycle(Can0, motorList[3].getID(), -0.2);
+        //Serial.println("turning counter clockwise");
+      }
+    }else{
+      success = 1;
+      Stop();
+    }
+  }
+  Stop();
+  return success;
+}
+
+
+
+void rotate(float amount){
+  float bnoData3[7];
+  pullBNOData(bno,bnoData3);
+  //return rotateTo(bnoData3[6] + amount,10000);
+} 
