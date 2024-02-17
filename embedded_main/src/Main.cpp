@@ -141,7 +141,12 @@ bool rotateTo(float direction, int time){
   while(millis() - startTime < expectedTime){
     //Serial.println("Not gone over time?");
     //Serial.print(millis() - startTime < expectedTime);
-    if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))){
+    if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))&&!(success)){
+      if(sin(direction - getBNOOrient(bno))>0){
+        turningRight = 1;
+      }else{
+        turningRight = 0;
+      }
       Serial.print("Turning to: ");
       Serial.println(direction);
       Serial.print("Currently at: ");
@@ -433,8 +438,7 @@ void loop() {
           //pass if command if control command is same as previous
         }
     }else if (token == "data") {                          
-        if(command != prevCommand)
-        {
+        
           scommand.erase(0, pos + delimiter.length());
           prevCommand = command;
           pos = scommand.find(delimiter);
@@ -495,10 +499,12 @@ void loop() {
             Serial.print(bmpData[1]);
             Serial.print(bmpData[2]);
 
+          }else if(token == "getOrientation"){
+            //string temp = "Orientation, ";
+            //temp = temp + getBNOOrient(bno);
+            Serial.printf("Orientation,%f\n", getBNOOrient(bno));
           }
-        }else{
-          //pass if command if control command is same as previous
-        }
+        
     } else if (token == "led_on") {
       digitalWrite(LED_PIN, HIGH);
     } else if (token == "led_off") {
