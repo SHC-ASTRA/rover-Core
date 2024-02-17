@@ -281,17 +281,34 @@ void loop() {
 
 
           if(token == "turningTo"){
+            bool success = false;
+
             scommand.erase(0, pos + delimiter.length());
             pos = scommand.find(delimiter); 
             token = scommand.substr(0, pos);
             scommand.erase(0, pos + delimiter.length());
             pos = scommand.find(delimiter);
             token2 = scommand.substr(0, pos);
-            //rotateTo(stoi(token),stoi(token2));
+
+            success = rotateTo(stof(token),stoi(token2));
+            if(success)
+            {
+              println("turningTo,success");
+            }else{
+              println("turningTo,fail");
+            }
           }else if(token == "forwards"){
-            goForwards(0.2);
+            scommand.erase(0, pos + delimiter.length());
+            pos = scommand.find(delimiter); 
+            token = scommand.substr(0, pos);
+
+            goForwards(stof(token));
           }else if(token == "backwards"){
-            goBackwards();
+            scommand.erase(0, pos + delimiter.length());
+            pos = scommand.find(delimiter); 
+            token = scommand.substr(0, pos);
+
+            goBackwards(stof(token));
           }else if(token == "stop"){
             Stop();
           }
@@ -428,7 +445,7 @@ void loopHeartbeats(){
 
 
 bool rotateTo(float direction, int time){
-  bool success = 0;
+  bool success = false;
   bool turningRight;
   int startTime = millis(); 
   int expectedTime;
@@ -443,7 +460,7 @@ bool rotateTo(float direction, int time){
   while(millis() - startTime < expectedTime){
     //Serial.println("Not gone over time?");
     //Serial.print(millis() - startTime < expectedTime);
-    if(!((getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2))&&!(success)){
+    if(!(getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2)){
       if(sin(direction - getBNOOrient(bno))>0){
         turningRight = 1;
       }else{
@@ -467,12 +484,12 @@ bool rotateTo(float direction, int time){
         //Serial.println("turning counter clockwise");
       }
     }else{
-      success = 1;
       Stop();
+      return true;
     }
   }
   Stop();
-  return success;
+  return false;
 }
 
 
