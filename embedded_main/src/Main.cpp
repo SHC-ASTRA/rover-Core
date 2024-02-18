@@ -560,6 +560,7 @@ bool rotateTo(float direction, int time){
     //Serial.println("Not gone over time?");
     //Serial.print(millis() - startTime < expectedTime);
     if(!(getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2)){
+      //if((abs(direction - getBNOOrient(bno)))>180){
       if(sin(direction - getBNOOrient(bno))>0){
         turningRight = 1;
       }else{
