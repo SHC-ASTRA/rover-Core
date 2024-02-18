@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <utility/imumaths.h>
+#include <FastLED.h>
 // Our own resources
 //#include "AstraMotors.h"
 //#include "AstraCAN.h"
@@ -12,11 +13,15 @@
 #include "TeensyThreads.h"
 #include "AstraSubroutines.h"
 
-
-
-
-
 using namespace std;
+
+#define LED_STRIP_PIN     10
+int led_rbg[3] = {0, 800, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+#define NUM_LEDS 38
+int led_counter = 0;
+
+CRGB leds[NUM_LEDS];
+
 
 #define LED_PIN 13 //Builtin LED pin for Teensy 4.1 (pin 25 for pi Pico)
 
@@ -84,7 +89,7 @@ void setup() {
     Serial.begin(115200);
     digitalWrite(LED_PIN, HIGH);
 
-    delay(5000);
+    delay(2000);
     digitalWrite(LED_PIN, LOW);
 
     Can0.begin();
@@ -93,8 +98,20 @@ void setup() {
     Can0.enableFIFO();
     Can0.enableFIFOInterrupt();
 
+    pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
-    pinMode(20, INPUT_PULLUP);
+
+    FastLED.addLeds<WS2812, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
+    for(int i = 0; i < NUM_LEDS; ++i)
+    {
+      leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
+      FastLED.show();
+      delay(10);
+    }
+
+
+
+
   //--------------------//
   // Initialize Sensors //
   //--------------------//
@@ -167,6 +184,8 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
   //Start heartbeat thread
   //TEMPORARY FIX, until we get a dedicated microcontroller for heartbeat propogation
   threads.addThread(loopHeartbeats);
+
+  
   
 }
 
@@ -188,9 +207,6 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
 //    /////////      //////////    //              //
 //                                                 //
 //-------------------------------------------------//
-
-
-
 
 
 void loop() {
@@ -217,18 +233,21 @@ void loop() {
   }
 
 
+  // for(int i = 0; i < NUM_LEDS; i++)
+  // {
+  //   leds[i] = CRGB(0, 0, 255);
+  //   FastLED.show();
+  // }
+
   //----------------------------------//
   // Runs something at a set interval //
   // Useful for testing               //
   //----------------------------------//
 
-  if(1){
-    if((millis()-clockTimer)>30000){
+  if(0){
+    if((millis()-clockTimer)>50){
       clockTimer = millis();
-      Serial.println("clock");
-      //motorList[3].setDuty(0.2);
-      //rotateTo(90, 15000);
-      //turnCCW();
+
     }
   }
 
@@ -376,10 +395,21 @@ void loop() {
             Serial.printf("orientation,%f\n", getBNOOrient(bno));
           }
         
-    } else if (token == "led_on") {
-      digitalWrite(LED_PIN, HIGH);
-    } else if (token == "led_off") {
-      digitalWrite(LED_PIN, LOW);
+    } else if (token == "led_set") {    //set LED strip color format: led_set,r,b,g
+      
+      for(int i = 0; i < 3; i++)
+      {
+        scommand.erase(0, pos + delimiter.length());
+        token = scommand.substr(0, pos);
+        pos = scommand.find(delimiter);
+        led_rbg[i] = stoi(token);
+
+        for(int i = 0; i < NUM_LEDS; ++i)
+        {
+          leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
+          FastLED.show();
+        }
+      }
     } else if (token == "ping") {
       Serial.println("pong");
     } else if (token == "time") {
