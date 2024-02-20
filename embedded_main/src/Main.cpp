@@ -7,17 +7,17 @@
 #include <utility/imumaths.h>
 #include <FastLED.h>
 // Our own resources
-//#include "AstraMotors.h"
-//#include "AstraCAN.h"
-//#include "AstraSensors.h"
+#include "AstraMotors.h"
+#include "AstraCAN.h"
+#include "AstraSensors.h"
 #include "TeensyThreads.h"
-#include "AstraSubroutines.h"
 
 using namespace std;
 
 #define LED_STRIP_PIN     10
-int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 #define NUM_LEDS 38
+
+int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
 
 CRGB leds[NUM_LEDS];
@@ -52,8 +52,8 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 
 
 //Prototypes
-void rotate(float amount);
-bool rotateTo(float direction, int time);
+int findRotationDirection(float current_direction, float target_direction);
+bool autoTurn(float target_direction, int time);
 void turnCW();
 void turnCCW();
 void Stop();
@@ -63,8 +63,6 @@ void loopHeartbeats();
 void outputBno();
 void outputBmp();
 void outputGPS();
-
-
 
 
 
@@ -340,7 +338,7 @@ void loop() {
             pos = scommand.find(delimiter);
             token2 = scommand.substr(0, pos);
 
-            success = rotateTo(stof(token),stoi(token2));
+            success = autoTurn(stof(token),stoi(token2));
             if(success)
             {
               Serial.println("turningTo,success");
@@ -437,9 +435,6 @@ void loop() {
 //-------------------------------------------------------//
 
 
-
-
-
 void outputBno()
 {
   float bnoData2[7];
@@ -483,18 +478,18 @@ void outputBmp()
 }
 
 void turnCW(){
-  sendDutyCycle(Can0, motorList[0].getID(), 0.2);
-  sendDutyCycle(Can0, motorList[1].getID(), 0.2);
-  sendDutyCycle(Can0, motorList[2].getID(), 0.2);
-  sendDutyCycle(Can0, motorList[3].getID(), 0.2);
+  sendDutyCycle(Can0, 2, 0.3);
+  sendDutyCycle(Can0, 4, 0.3);
+  sendDutyCycle(Can0, 1, 0.3);
+  sendDutyCycle(Can0, 3, 0.3);
 }
 
 
 void turnCCW(){
-  sendDutyCycle(Can0, motorList[0].getID(), -0.2);
-  sendDutyCycle(Can0, motorList[1].getID(), -0.2);
-  sendDutyCycle(Can0, motorList[2].getID(), -0.2);
-  sendDutyCycle(Can0, motorList[3].getID(), -0.2);
+  sendDutyCycle(Can0, 2, -0.3);
+  sendDutyCycle(Can0, 4, -0.3);
+  sendDutyCycle(Can0, 1, -0.3);
+  sendDutyCycle(Can0, 3, -0.3);
 }
 
 void Stop(){
@@ -544,38 +539,32 @@ void loopHeartbeats(){
 
 
 
-bool rotateTo(float direction, int time){
-  bool turningRight;
+bool autoTurn(float target_direction, int time){
   int startTime = millis(); 
-  int expectedTime;
+  unsigned long expectedTime;
   expectedTime = time;
-  if(sin(direction - getBNOOrient(bno))>0){
-    turningRight = 1;
-  }else{
-    turningRight = 0;
-  }
-  //Serial.println("Turning Right?");
-  //Serial.print(sin(direction - getBNOOrient(bno))>0);
+  
+  float current_direction = getBNOOrient(bno);
+  bool turningRight = findRotationDirection(current_direction, target_direction);
+
+  Serial.printf("StartTime: %d, Expected: %d",(int)startTime, (int)expectedTime);
+
+
   while(millis() - startTime < expectedTime){
-    //Serial.println("Not gone over time?");
-    //Serial.print(millis() - startTime < expectedTime);
-    if(!(getBNOOrient(bno) < direction + 2) && (getBNOOrient(bno) > direction - 2)){
-      //if((abs(direction - getBNOOrient(bno)))>180){
-      if(sin(direction - getBNOOrient(bno))>0){
-        turningRight = 1;
-      }else{
-        turningRight = 0;
-      }
+    current_direction = getBNOOrient(bno);
+    if(!((current_direction < target_direction + 2) && (current_direction > target_direction - 2))){
+      
+      turningRight = findRotationDirection(current_direction, target_direction);
+
       Serial.print("Turning to: ");
-      Serial.println(direction);
+      Serial.println(target_direction);
       Serial.print("Currently at: ");
       Serial.println(getBNOOrient(bno));
+
       if(turningRight){
         turnCW();
-        //Serial.println("turning clockwise");
       }else{
         turnCCW();
-        //Serial.println("turning counter clockwise");
       }
     }else{
       Stop();
@@ -588,8 +577,16 @@ bool rotateTo(float direction, int time){
 
 
 
-void rotate(float amount){
-  float bnoData3[7];
-  pullBNOData(bno,bnoData3);
-  //return rotateTo(bnoData3[6] + amount,10000);
+int findRotationDirection(float current_direction, float target_direction){
+  int cw_dist = target_direction - current_direction + 360;
+  cw_dist = cw_dist % 360;
+  int ccw_dist = current_direction - target_direction + 360; 
+  ccw_dist = ccw_dist % 360;
+
+  if(cw_dist <= ccw_dist)
+  {
+    return 1;//Rotate CW if distance is 180 or less
+  }else{
+    return 0;//Rotate CCW if distance is greater than 180
+  }
 } 
