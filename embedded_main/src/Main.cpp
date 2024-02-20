@@ -579,9 +579,9 @@ bool autoTurn(float target_direction, int time){
 
 int findRotationDirection(float current_direction, float target_direction){
   int cw_dist = target_direction - current_direction + 360;
-  cw_dist = cw_dist % 360;
+  cw_dist %= 360;
   int ccw_dist = current_direction - target_direction + 360; 
-  ccw_dist = ccw_dist % 360;
+  ccw_dist %= 360;
 
   if(cw_dist <= ccw_dist)
   {
