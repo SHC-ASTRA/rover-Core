@@ -10,43 +10,52 @@
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-
-void calibrateBNO(Adafruit_BNO055 &bno)
+//Load calibrations
+void loadCalibrations(Adafruit_BNO055 &bno)
 {
-    int eeAddress = 0;
-    long bnoID;
-    bool foundCalib = false;
-    EEPROM.get(eeAddress, bnoID);
-    adafruit_bno055_offsets_t calibrationData;
-    sensor_t sensor;
-    bno.getSensor(&sensor);
-    if(bnoID!=sensor.sensor_id)
-    {
-        eeAddress+=sizeof(long);
-        EEPROM.get(eeAddress, calibrationData);
-        bno.setSensorOffsets(calibrationData);
-        foundCalib = true;
-    }
-    bno.setExtCrystalUse(true);
-    sensors_event_t event;
-    bno.getEvent(&event);
-    if(!foundCalib)
-    {
-        while(!bno.isFullyCalibrated())
-        {
-            bno.getEvent(&event);
-            delay(100);
-        }
-    }
-    adafruit_bno055_offsets_t newCalib;
-    bno.getSensorOffsets(newCalib);
-    eeAddress = 0;
-    bno.getSensor(&sensor);
-    bnoID = sensor.sensor_id;
-    EEPROM.put(eeAddress, bnoID);
+    int eeAddress;
     eeAddress += sizeof(long);
-    EEPROM.put(eeAddress, newCalib);
+    adafruit_bno055_offsets_t calibrationData;
+    EEPROM.get(eeAddress, calibrationData);
+    bno.setSensorOffsets(calibrationData);
 }
+
+// void calibrateBNO(Adafruit_BNO055 &bno)
+// {
+//     int eeAddress = 0;
+//     long bnoID;
+//     bool foundCalib = false;
+//     EEPROM.get(eeAddress, bnoID);
+//     adafruit_bno055_offsets_t calibrationData;
+//     sensor_t sensor;
+//     bno.getSensor(&sensor);
+//     if(bnoID!=sensor.sensor_id)
+//     {
+//         eeAddress+=sizeof(long);
+//         EEPROM.get(eeAddress, calibrationData);
+//         bno.setSensorOffsets(calibrationData);
+//         foundCalib = true;
+//     }
+//     bno.setExtCrystalUse(true);
+//     sensors_event_t event;
+//     bno.getEvent(&event);
+//     if(!foundCalib)
+//     {
+//         while(!bno.isFullyCalibrated())
+//         {
+//             bno.getEvent(&event);
+//             delay(100);
+//         }
+//     }
+//     adafruit_bno055_offsets_t newCalib;
+//     bno.getSensorOffsets(newCalib);
+//     eeAddress = 0;
+//     bno.getSensor(&sensor);
+//     bnoID = sensor.sensor_id;
+//     EEPROM.put(eeAddress, bnoID);
+//     eeAddress += sizeof(long);
+//     EEPROM.put(eeAddress, newCalib);
+// }
 
 void pullBNOData(Adafruit_BNO055 &bno, float (& bno_data)[7])
 {
