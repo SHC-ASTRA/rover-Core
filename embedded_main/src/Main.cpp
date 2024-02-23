@@ -14,6 +14,7 @@
 
 using namespace std;
 
+
 #define LED_STRIP_PIN     10
 #define NUM_LEDS 38
 
@@ -21,6 +22,9 @@ int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when do
 int led_counter = 0;
 
 CRGB leds[NUM_LEDS];
+
+
+#define LED_PIN 13 //Builtin LED pin for Teensy 4.1 (pin 25 for pi Pico)
 
 
 #define LED_PIN 13 //Builtin LED pin for Teensy 4.1 (pin 25 for pi Pico)
@@ -43,17 +47,17 @@ Adafruit_BNO055 bno = Adafruit_BNO055();
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
 
 //AstraMotors(int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
-AstraMotors Motor1(2, 1, false, 50, 0.50F);//FL
-AstraMotors Motor2(4, 1, false, 50, 0.50F);//BL
-AstraMotors Motor3(1, 1, true, 50, 0.50F);//FR
-AstraMotors Motor4(3, 1, true, 50, 0.50F);//BR
+AstraMotors Motor1(2, 1, false, 50, 1.00F);//FL
+AstraMotors Motor2(4, 1, false, 50, 1.00F);//BL
+AstraMotors Motor3(1, 1, true, 50, 1.00F);//FR
+AstraMotors Motor4(3, 1, true, 50, 1.00F);//BR
 
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
 
 //Prototypes
 int findRotationDirection(float current_direction, float target_direction);
-bool autoTurn(float target_direction, int time);
+bool autoTurn(int time,float target_direction);
 void turnCW();
 void turnCCW();
 void Stop();
@@ -63,6 +67,7 @@ void loopHeartbeats();
 void outputBno();
 void outputBmp();
 void outputGPS();
+void setLED(int r_val, int b_val, int g_val);
 
 
 
@@ -401,13 +406,10 @@ void loop() {
         token = scommand.substr(0, pos);
         pos = scommand.find(delimiter);
         led_rbg[i] = stoi(token);
-
-        for(int i = 0; i < NUM_LEDS; ++i)
-        {
-          leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
-          FastLED.show();
-        }
       }
+      
+      setLED(led_rbg[0], led_rbg[1], led_rbg[2]);
+
     } else if (token == "ping") {
       Serial.println("pong");
     } else if (token == "time") {
@@ -478,18 +480,18 @@ void outputBmp()
 }
 
 void turnCW(){
-  sendDutyCycle(Can0, 2, 0.3);
-  sendDutyCycle(Can0, 4, 0.3);
-  sendDutyCycle(Can0, 1, 0.3);
-  sendDutyCycle(Can0, 3, 0.3);
+  sendDutyCycle(Can0, 2, 0.6);
+  sendDutyCycle(Can0, 4, 0.6);
+  sendDutyCycle(Can0, 1, 0.6);
+  sendDutyCycle(Can0, 3, 0.6);
 }
 
 
 void turnCCW(){
-  sendDutyCycle(Can0, 2, -0.3);
-  sendDutyCycle(Can0, 4, -0.3);
-  sendDutyCycle(Can0, 1, -0.3);
-  sendDutyCycle(Can0, 3, -0.3);
+  sendDutyCycle(Can0, 2, -0.6);
+  sendDutyCycle(Can0, 4, -0.6);
+  sendDutyCycle(Can0, 1, -0.6);
+  sendDutyCycle(Can0, 3, -0.6);
 }
 
 void Stop(){
@@ -539,7 +541,7 @@ void loopHeartbeats(){
 
 
 
-bool autoTurn(float target_direction, int time){
+bool autoTurn(int time, float target_direction){
   int startTime = millis(); 
   unsigned long expectedTime;
   expectedTime = time;
@@ -590,3 +592,13 @@ int findRotationDirection(float current_direction, float target_direction){
     return 0;//Rotate CCW if distance is greater than 180
   }
 } 
+
+void setLED(int r_val, int b_val, int g_val)
+{
+    for(int i = 0; i < NUM_LEDS; ++i)
+    {
+      leds[i] = CRGB(r_val, b_val, g_val);
+      FastLED.show();
+      delay(10);
+    }
+}
