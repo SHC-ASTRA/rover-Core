@@ -12,10 +12,10 @@ import glob
 
 from std_msgs.msg import String
 
-class Headless(Node):
+class Mac_Headless(Node):
     def __init__(self):
         # Initalize node with name
-        super().__init__("headless_ctrl")
+        super().__init__("mac_headless_ctrl")
 
         self.create_timer(0.10, self.send_controls)
 
@@ -90,12 +90,12 @@ class Headless(Node):
                 exit()
 
 
-        left_x = self.gamepad.get_axis(0)#left x-axis
+        #left_x = self.gamepad.get_axis(0)#left x-axis
         left_y = self.gamepad.get_axis(1)#lext y-axis
-        left_t = self.gamepad.get_axis(2)#left trigger
-        right_x = self.gamepad.get_axis(3)#right x-axis
-        right_y = self.gamepad.get_axis(4)#right y-axis
-        right_t = self.gamepad.get_axis(5)#right trigger
+        #left_t = self.gamepad.get_axis(2)#left trigger
+        #right_x = self.gamepad.get_axis(3)#right x-axis
+        right_y = self.gamepad.get_axis(3)#right y-axis
+        right_t = self.gamepad.get_axis(4)#right trigger
 
 
         if pygame.joystick.get_count() != 0:
@@ -144,7 +144,7 @@ class Headless(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    node = Headless()
+    node = Mac_Headless()
     
     rclpy.spin(node)
     rclpy.shutdown()
