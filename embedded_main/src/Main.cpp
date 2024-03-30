@@ -47,10 +47,10 @@ Adafruit_BNO055 bno = Adafruit_BNO055();
 FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
 
 //AstraMotors(int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
-AstraMotors Motor1(2, 1, false, 50, 1.00F);//FL
-AstraMotors Motor2(4, 1, false, 50, 1.00F);//BL
-AstraMotors Motor3(1, 1, true, 50, 1.00F);//FR
-AstraMotors Motor4(3, 1, true, 50, 1.00F);//BR
+AstraMotors Motor1(2, 1, false, 50, 1.00F);//Front Left
+AstraMotors Motor2(4, 1, false, 50, 1.00F);//Back Left
+AstraMotors Motor3(1, 1, true, 50, 1.00F);//Front Right
+AstraMotors Motor4(3, 1, true, 50, 1.00F);//Back Right
 
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
@@ -76,9 +76,7 @@ unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
 
-unsigned long lastIdentify;
 
-unsigned long thing = millis();
 unsigned long clockTimer = millis();
 
 
@@ -95,6 +93,7 @@ void setup() {
     delay(2000);
     digitalWrite(LED_PIN, LOW);
 
+    // Initalization for using CAN with the sparkmax
     Can0.begin();
     Can0.setBaudRate(1000000);
     Can0.setMaxMB(16);
@@ -137,7 +136,7 @@ void setup() {
 
 
 
-
+// Setup for GPS
 myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
 
   // Create storage for the time pulse parameters
@@ -215,6 +214,7 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
 void loop() {
   
   // Accelerate the motors
+  // Every 50 milliseconds, update the speed for all motors
   if(millis()-lastAccel >= 50){
     lastAccel = millis();
     for(int i = 0; i < 4; i++)
@@ -236,11 +236,6 @@ void loop() {
   }
 
 
-  // for(int i = 0; i < NUM_LEDS; i++)
-  // {
-  //   leds[i] = CRGB(0, 0, 255);
-  //   FastLED.show();
-  // }
 
   //----------------------------------//
   // Runs something at a set interval //
@@ -284,9 +279,9 @@ void loop() {
     command.trim();                                 // I don't know why this is here, but it is important
     string delimiter = ",";                         // The key that decides where the command should be split
     size_t pos = 0;                                 // Standard parse variable
-    string token;       
-    string token2;                            // The current piece of the string being used.
-    string scommand = command.c_str();         // Converts the Arduino String into a C++ string since they are different things
+    string token;                                   // The current piece of the string being used.
+    string token2;                                  // A secondary piece of the string saved.
+    string scommand = command.c_str();              // Converts the Arduino String into a C++ string since they are different things
     pos = scommand.find(delimiter);
     token = scommand.substr(0, pos);
     String prevCommand;
@@ -297,14 +292,6 @@ void loop() {
           scommand.erase(0, pos + delimiter.length());
 
           prevCommand = command;
-
-          
-          if((millis()-thing)>2000){
-            Serial.println("orient");
-            Serial.println(getBNOOrient(bno));
-            Serial.println(command != prevCommand);
-            thing = millis();
-          }
 
           for(int i = 0; i < 3; i+= 2){
             token = scommand.substr(0, pos);
@@ -324,7 +311,7 @@ void loop() {
       token = scommand.substr(0, pos);
       pos = scommand.find(delimiter);
       //Motor1.setMotorMultiplier(stof(token));
-    }else if (token == "auto") {                          
+    }else if (token == "auto") {  // Commands for autonomy
         if(command != prevCommand)
         {
           scommand.erase(0, pos + delimiter.length());
@@ -333,7 +320,7 @@ void loop() {
           token = scommand.substr(0, pos);
 
 
-          if(token == "turningTo"){
+          if(token == "turningTo"){ // auto,turningTo
             bool success = false;
 
             scommand.erase(0, pos + delimiter.length());
@@ -350,25 +337,25 @@ void loop() {
             }else{
               Serial.println("turningTo,fail");
             }
-          }else if(token == "forwards"){
+          }else if(token == "forwards"){  // auto,forwards
             scommand.erase(0, pos + delimiter.length());
             pos = scommand.find(delimiter); 
             token = scommand.substr(0, pos);
 
             goForwards(stof(token));
-          }else if(token == "backwards"){
+          }else if(token == "backwards"){ // auto,backwards
             scommand.erase(0, pos + delimiter.length());
             pos = scommand.find(delimiter); 
             token = scommand.substr(0, pos);
 
             goBackwards(stof(token));
-          }else if(token == "stop"){
+          }else if(token == "stop"){  // auto,stop
             Stop();
           }
         }else{
           //pass if command if control command is same as previous
         }
-    }else if (token == "data") {                          
+    }else if (token == "data") {  // Send data out
         
           scommand.erase(0, pos + delimiter.length());
           prevCommand = command;
@@ -376,25 +363,25 @@ void loop() {
           token = scommand.substr(0, pos);
 
 
-          if(token == "sendGPS"){
+          if(token == "sendGPS"){ // data,sendGPS
 
             outputGPS();
 
-          }else if(token == "sendIMU"){
+          }else if(token == "sendIMU"){ // data,sendIMU
 
             outputBno();
 
-          }else if(token == "sendBMP"){
+          }else if(token == "sendBMP"){ // data,sendBMP
 
             outputBmp();
 
-          }else if(token == "everything"){
+          }else if(token == "everything"){  // data,everything
 
             outputGPS();
             outputBno();
             outputBmp();
 
-          }else if(token == "getOrientation"){
+          }else if(token == "getOrientation"){  // data,getOrientation
             Serial.printf("orientation,%f\n", getBNOOrient(bno));
           }
         
@@ -436,49 +423,32 @@ void loop() {
 //                                                       //
 //-------------------------------------------------------//
 
-
+// Prints the output of the BNO in one line
 void outputBno()
 {
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
   printf("bno,%f,%f,%f,%f,%f,%f,%f\n",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
-  /*
-  bno_data[0] = event.gyro.x;//pitch
-  bno_data[1] = event.gyro.z;//roll
-  bno_data[2] = event.gyro.y;//yaw
-
-  bno_data[3] = event.acceleration.x;//pitch
-  bno_data[4] = event.acceleration.z;//roll
-  bno_data[5] = event.acceleration.y;//yaw
-
-  bno_data[6] = event.orientation.x;//Absolute Orientation/Heading 
-  */
 }
 
+// Prints the output of the GPS in one line
 void outputGPS()
 {
   float gpsData[3];
   getPosition(myGNSS, gpsData);
   printf("gps,%f,%f,%f\n",gpsData[0],gpsData[1],gpsData[2]);
-  /*
-  gps_data[0] = myGNSS.getLatitude()/10000000.0;
-    gps_data[1] = myGNSS.getLongitude()/10000000.0;
-    gps_data[2] = uint8_t(myGNSS.getSIV());
-  */
 }
 
+// Prints the output of the BMP in one line
 void outputBmp()
 {
   float bmpData[3];
   pullBMPData(bmp, bmpData);
   printf("bmp,%f,%f,%f\n",bmpData[0],bmpData[1],bmpData[2]);
-  /*
-  bmp_data[0] = bmp.temperature;
-  bmp_data[1] = bmp.pressure/100.0;
-  bmp_data[2] = bmp.readAltitude(SEALEVELPRESSURE_HPA);
-  */
 }
 
+// Bypasses the acceleration to make the rover turn clockwise
+// Should only be used for autonomy
 void turnCW(){
   sendDutyCycle(Can0, 2, 0.6);
   sendDutyCycle(Can0, 4, 0.6);
@@ -486,7 +456,8 @@ void turnCW(){
   sendDutyCycle(Can0, 3, 0.6);
 }
 
-
+// Bypasses the acceleration to make the rover turn counterclockwise
+// Should only be used for autonomy
 void turnCCW(){
   sendDutyCycle(Can0, 2, -0.6);
   sendDutyCycle(Can0, 4, -0.6);
@@ -494,6 +465,8 @@ void turnCCW(){
   sendDutyCycle(Can0, 3, -0.6);
 }
 
+// Bypasses the acceleration to make the rover stop
+// Should only be used for autonomy, but it could probably be used elsewhere
 void Stop(){
   sendDutyCycle(Can0, motorList[0].getID(), 0);
   sendDutyCycle(Can0, motorList[1].getID(), 0);
@@ -501,7 +474,9 @@ void Stop(){
   sendDutyCycle(Can0, motorList[3].getID(), 0);
 }
 
-
+// Tells the rover to go forwards
+// Does not bypass acceleration
+// Autonomy
 void goForwards(float speed){
   motorList[0].setDuty(speed);
   motorList[1].setDuty(speed);
@@ -509,6 +484,9 @@ void goForwards(float speed){
   motorList[3].setDuty(speed);
 }
 
+// Tells the rover to go backwards
+// Does not bypass acceleration
+// Autonomy
 void goBackwards(float speed){
   float temp = (-1) * speed;
   motorList[0].setDuty(temp);
@@ -517,30 +495,10 @@ void goBackwards(float speed){
   motorList[3].setDuty(temp);
 }
 
-
-void loopHeartbeats(){
-    Can0.begin();
-    Can0.setBaudRate(1000000);
-    Can0.setMaxMB(16);
-    Can0.enableFIFO();
-    Can0.enableFIFOInterrupt();
-
-    while(1){
-      sendHeartbeat(Can0, 1);
-      threads.delay(3);
-      sendHeartbeat(Can0, 2);
-      threads.delay(3);
-      sendHeartbeat(Can0, 3);
-      threads.delay(3);
-      sendHeartbeat(Can0, 4);
-      threads.delay(3);
-      threads.yield();
-    }
-
-}
-
-
-
+// Specify where the rover should turn
+// and how long it should take before
+// the rover decides that it has failed
+// to turn
 bool autoTurn(int time, float target_direction){
   int startTime = millis(); 
   unsigned long expectedTime;
@@ -578,7 +536,7 @@ bool autoTurn(int time, float target_direction){
 }
 
 
-
+// Finds out which direction the rover should turn
 int findRotationDirection(float current_direction, float target_direction){
   int cw_dist = target_direction - current_direction + 360;
   cw_dist %= 360;
@@ -592,6 +550,29 @@ int findRotationDirection(float current_direction, float target_direction){
     return 0;//Rotate CCW if distance is greater than 180
   }
 } 
+
+
+// Magic that makes the SparkMax work with CAN
+void loopHeartbeats(){
+    Can0.begin();
+    Can0.setBaudRate(1000000);
+    Can0.setMaxMB(16);
+    Can0.enableFIFO();
+    Can0.enableFIFOInterrupt();
+
+    while(1){
+      sendHeartbeat(Can0, 1);
+      threads.delay(3);
+      sendHeartbeat(Can0, 2);
+      threads.delay(3);
+      sendHeartbeat(Can0, 3);
+      threads.delay(3);
+      sendHeartbeat(Can0, 4);
+      threads.delay(3);
+      threads.yield();
+    }
+}
+
 
 void setLED(int r_val, int b_val, int g_val)
 {
