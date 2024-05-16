@@ -4,6 +4,7 @@
 #include <string>
 #include <cmath>
 #include <cstdlib>
+#include <vector>
 #include <utility/imumaths.h>
 #include <FastLED.h>
 // Our own resources
@@ -15,8 +16,8 @@
 using namespace std;
 
 
-#define LED_STRIP_PIN     10
-#define NUM_LEDS 38
+#define LED_STRIP_PIN 10
+#define NUM_LEDS 50
 
 int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
@@ -68,6 +69,7 @@ void outputBno();
 void outputBmp();
 void outputGPS();
 void setLED(int r_val, int b_val, int g_val);
+void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
 
 
 
@@ -103,7 +105,8 @@ void setup() {
     pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
 
-    FastLED.addLeds<WS2812, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812B, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(255);
     for(int i = 0; i < NUM_LEDS; ++i)
     {
       leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
@@ -277,129 +280,119 @@ void loop() {
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');  // Command is equal to a line in the serial
     command.trim();                                 // I don't know why this is here, but it is important
-    string delimiter = ",";                         // The key that decides where the command should be split
-    size_t pos = 0;                                 // Standard parse variable
-    string token;                                   // The current piece of the string being used.
-    string token2;                                  // A secondary piece of the string saved.
-    string scommand = command.c_str();              // Converts the Arduino String into a C++ string since they are different things
-    pos = scommand.find(delimiter);
-    token = scommand.substr(0, pos);
+    // string delimiter = ",";                         // The key that decides where the command should be split
+    // size_t pos = 0;                                 // Standard parse variable
+    // string token;                                   // The current piece of the string being used.
+    // string token2;                                  // A secondary piece of the string saved.
+    // string scommand = command.c_str();              // Converts the Arduino String into a C++ string since they are different things
+    // pos = scommand.find(delimiter);
+    // token = scommand.substr(0, pos);
     String prevCommand;
 
-    if (token == "ctrl") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+    //
+
+    std::vector<String> args = {};
+    parseInput(command, args, ',');
+
+    //
+
+    if (args[0] == "ctrl") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        Serial.println("ctrl cmd received");
         if(command != prevCommand)
         {
-          scommand.erase(0, pos + delimiter.length());
+          Serial.println("NEW COMMAND RECEIVED");
 
           prevCommand = command;
 
-          for(int i = 0; i < 3; i+= 2){
-            token = scommand.substr(0, pos);
-            pos = scommand.find(delimiter);
-            motorList[i].setDuty(stof(token));
-            motorList[i+1].setDuty(stof(token));
-            
-            scommand.erase(0, pos + delimiter.length());
-          }
+          motorList[0].setDuty(args[1].toFloat());
+          motorList[1].setDuty(args[1].toFloat());
+
+          motorList[2].setDuty(args[2].toFloat());
+          motorList[3].setDuty(args[2].toFloat());
 
           
         }else{
           //pass if command if control command is same as previous
         }
-    }else if (token == "speedMultiplier") {         // Is looking for a command that looks like "ctrl,x" where 0<x<1
-      scommand.erase(0, pos + delimiter.length());
-      token = scommand.substr(0, pos);
-      pos = scommand.find(delimiter);
-      //Motor1.setMotorMultiplier(stof(token));
-    }else if (token == "auto") {  // Commands for autonomy
+    }else if (args[0] == "speedMultiplier") {         // Is looking for a command that looks like "ctrl,x" where 0<x<1
+      // scommand.erase(0, pos + delimiter.length());
+      // token = scommand.substr(0, pos);
+      // pos = scommand.find(delimiter);
+      // //Motor1.setMotorMultiplier(stof(token));
+    }else if (args[0] == "auto") {  // Commands for autonomy
         if(command != prevCommand)
         {
-          scommand.erase(0, pos + delimiter.length());
-          prevCommand = command;
-          pos = scommand.find(delimiter);
-          token = scommand.substr(0, pos);
-
-
-          if(token == "turningTo"){ // auto,turningTo
+          if(args[1] == "turningTo"){ // auto,turningTo
             bool success = false;
 
-            scommand.erase(0, pos + delimiter.length());
-            pos = scommand.find(delimiter); 
-            token = scommand.substr(0, pos);
-            scommand.erase(0, pos + delimiter.length());
-            pos = scommand.find(delimiter);
-            token2 = scommand.substr(0, pos);
-
-            success = autoTurn(stof(token),stoi(token2));
+            success = autoTurn(args[2].toFloat(),args[3].toFloat());
             if(success)
             {
               Serial.println("turningTo,success");
             }else{
               Serial.println("turningTo,fail");
             }
-          }else if(token == "forwards"){  // auto,forwards
-            scommand.erase(0, pos + delimiter.length());
-            pos = scommand.find(delimiter); 
-            token = scommand.substr(0, pos);
+          }else if(args[1] == "forwards"){  // auto,forwards
+           
 
-            goForwards(stof(token));
-          }else if(token == "backwards"){ // auto,backwards
-            scommand.erase(0, pos + delimiter.length());
-            pos = scommand.find(delimiter); 
-            token = scommand.substr(0, pos);
+            goForwards(args[2].toFloat());
+          }else if(args[1] == "backwards"){ // auto,backwards
+            // scommand.erase(0, pos + delimiter.length());
+            // pos = scommand.find(delimiter); 
+            // token = scommand.substr(0, pos);
 
-            goBackwards(stof(token));
-          }else if(token == "stop"){  // auto,stop
+            goBackwards(args[2].toFloat());
+          }else if(args[2] == "stop"){  // auto,stop
             Stop();
           }
         }else{
           //pass if command if control command is same as previous
         }
-    }else if (token == "data") {  // Send data out
+    }else if (args[0] == "data") {  // Send data out
         
-          scommand.erase(0, pos + delimiter.length());
-          prevCommand = command;
-          pos = scommand.find(delimiter);
-          token = scommand.substr(0, pos);
+          // scommand.erase(0, pos + delimiter.length());
+          // prevCommand = command;
+          // pos = scommand.find(delimiter);
+          // token = scommand.substr(0, pos);
 
 
-          if(token == "sendGPS"){ // data,sendGPS
+          if(args[1] == "sendGPS"){ // data,sendGPS
 
             outputGPS();
 
-          }else if(token == "sendIMU"){ // data,sendIMU
+          }else if(args[1] == "sendIMU"){ // data,sendIMU
 
             outputBno();
 
-          }else if(token == "sendBMP"){ // data,sendBMP
+          }else if(args[1] == "sendBMP"){ // data,sendBMP
 
             outputBmp();
 
-          }else if(token == "everything"){  // data,everything
+          }else if(args[1] == "everything"){  // data,everything
 
             outputGPS();
             outputBno();
             outputBmp();
 
-          }else if(token == "getOrientation"){  // data,getOrientation
+          }else if(args[1] == "getOrientation"){  // data,getOrientation
             Serial.printf("orientation,%f\n", getBNOOrient(bno));
           }
         
-    } else if (token == "led_set") {    //set LED strip color format: led_set,r,b,g
+    } else if (args[1] == "led_set") {    //set LED strip color format: led_set,r,b,g
       
       for(int i = 0; i < 3; i++)
       {
-        scommand.erase(0, pos + delimiter.length());
-        token = scommand.substr(0, pos);
-        pos = scommand.find(delimiter);
-        led_rbg[i] = stoi(token);
+        // scommand.erase(0, pos + delimiter.length());
+        // token = scommand.substr(0, pos);
+        // pos = scommand.find(delimiter);
+        led_rbg[i] = args[2].toInt();
       }
       
       setLED(led_rbg[0], led_rbg[1], led_rbg[2]);
 
-    } else if (token == "ping") {
+    } else if (args[0] == "ping") {
       Serial.println("pong");
-    } else if (token == "time") {
+    } else if (args[0] == "time") {
       Serial.println(millis());
     }
 
@@ -582,4 +575,42 @@ void setLED(int r_val, int b_val, int g_val)
       FastLED.show();
       delay(10);
     }
+}
+
+
+// Parse `input` into `args` separated by `delim`
+// Ex: "ctrl,led,on" => {ctrl,led,on}
+// Equivalent to Python's `.split()`
+void parseInput(const String input, std::vector<String>& args, char delim) {
+    //Modified from https://forum.arduino.cc/t/how-to-split-a-string-with-space-and-store-the-items-in-array/888813/9
+
+    // Index of previously found delim
+    int lastIndex = -1;
+    // Index of currently found delim
+    int index = -1;
+    // because lastIndex=index, lastIndex starts at -1, so with lastIndex+1, first search begins at 0
+
+    // if empty input for some reason, don't do anything
+    if(input.length() == 0)
+        return;
+
+    unsigned count = 0;
+    while (count++, count < 200 /*arbitrary limit on number of delims because while(true) is scary*/) {
+        lastIndex = index;
+        // using lastIndex+1 instead of input = input.substring to reduce memory impact
+        index = input.indexOf(delim, lastIndex+1);
+        if (index == -1) { // No instance of delim found in input
+            // If no delims are found at all, then lastIndex+1 == 0, so whole string is passed.
+            // Otherwise, only the last part of input is passed because of lastIndex+1.
+            args.push_back(input.substring(lastIndex+1));
+            // Exit the loop when there are no more delims
+            break;
+        } else { // delim found
+            // If this is the first delim, lastIndex+1 == 0, so starts from beginning
+            // Otherwise, starts from last found delim with lastIndex+1
+            args.push_back(input.substring(lastIndex+1, index));
+        }
+    }
+
+    // output is via vector<String>& args
 }
