@@ -17,7 +17,12 @@ using namespace std;
 
 
 #define LED_STRIP_PIN 10
-#define NUM_LEDS 50
+#define NUM_LEDS 166
+//strip 1: 1-40
+//strip 2: 41-82
+//strip 3: 83-124
+//strip 4: 125-166
+//CCW: 1,2,3,4
 
 int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
