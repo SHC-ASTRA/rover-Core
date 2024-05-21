@@ -8,6 +8,7 @@ import glob
 
 
 from std_msgs.msg import String
+from std_srvs.srv import Empty
 
 class SerialRelay(Node):
     def __init__(self):
@@ -19,6 +20,9 @@ class SerialRelay(Node):
 
         # Create a subscriber to listen to any commands sent for the MCU
         self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
+
+        # Create a service server for pinging the rover
+        self.ping_service = self.create_service(Empty, '/astra/core/ping', self.ping_callback)
 
         # Loop through all serial devices on the computer to check for the MCU
         self.port = None
@@ -79,6 +83,9 @@ class SerialRelay(Node):
         # Send command to MCU
         self.ser.write(bytes(command, "utf8"))
         #print(f"[Sys] Relaying: {command}")
+
+    def ping_callback(self, request, response):
+        return response
 
     @staticmethod
     def list_serial_ports():
