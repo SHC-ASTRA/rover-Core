@@ -347,7 +347,7 @@ void loop() {
             // token = scommand.substr(0, pos);
 
             goBackwards(args[2].toFloat());
-          }else if(args[2] == "stop"){  // auto,stop
+          }else if(args[1] == "stop"){  // auto,stop
             Stop();
           }
         }else{

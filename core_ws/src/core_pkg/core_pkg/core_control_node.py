@@ -62,7 +62,7 @@ class SerialRelay(Node):
                # Check the pico for updates
                self.read_pico()
                if not self.connected:
-                   self.send("STOP")
+                   self.send("auto,stop")
 
 
        except KeyboardInterrupt:
