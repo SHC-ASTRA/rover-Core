@@ -70,9 +70,9 @@ void Stop();
 void goForwards(float speed);
 void goBackwards(float speed);
 void loopHeartbeats();
-string outputBno();
-string outputBmp();
-string outputGPS();
+String outputBno();
+String outputBmp();
+String outputGPS();
 void setLED(int r_val, int b_val, int g_val);
 void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
 
@@ -84,7 +84,7 @@ unsigned long lastDuty;
 unsigned long lastHB;
 unsigned long lastFeedback;
 
-string feedback;
+String feedback;
 
 unsigned long clockTimer = millis();
 
@@ -256,7 +256,7 @@ void loop() {
     
     feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
     //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
-    Serial.println(feedback);
+    //Serial.println(feedback);
     
     
     lastFeedback = millis();
@@ -425,34 +425,34 @@ void loop() {
 //-------------------------------------------------------//
 
 // Prints the output of the BNO in one line
-string outputBno()
+String outputBno()
 {
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
-  string output;
-  sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+  String output;
+  //sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
   
   return output;
 }
 
 // Prints the output of the GPS in one line
-string outputGPS()
+String outputGPS()
 {
   float gpsData[3];
   getPosition(myGNSS, gpsData);
-  string output;
-  sprintf(output, "%f,%f,%f",gpsData[0],gpsData[1],gpsData[2]);
+  String output;
+  //sprintf(output, "%f,%f,%f",gpsData[0],gpsData[1],gpsData[2]);
 
   return output;
 }
 
 // Prints the output of the BMP in one line
-string outputBmp()
+String outputBmp()
 {
   float bmpData[3];
   pullBMPData(bmp, bmpData);
-  string output;
-  sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
+  String output;
+  //sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
 
   return output;
 }
