@@ -8,6 +8,7 @@
   <license>All Rights Reserved</license>
 
   <depend>rclpy</depend>
+  <depend>interfaces_pkg</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

@@ -11,62 +11,62 @@ from std_msgs.msg import String
 from interfaces_pkg.msg import CoreFeedback
 
 class SerialRelay(Node):
-   def __init__(self):
-       # Initalize node with name
-       super().__init__("serial_publisher")#previously 'serial_publisher'
+    def __init__(self):
+        # Initalize node with name
+        super().__init__("serial_publisher")#previously 'serial_publisher'
 
         # Create a publisher to publish any output the pico sends
         self.feedback_publisher = self.create_publisher(String, '/astra/core/feedback', 10) 
         self.telemetry_publisher = self.create_publisher(CoreFeedback, '/astra/core/telemetry', 10)
 
-       # Create a subscriber to listen to any commands sent for the pico
-       self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
+        # Create a subscriber to listen to any commands sent for the pico
+        self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
 
-       # Loop through all serial devices on the computer to check for the pico
-       self.port = None
-       ports = SerialRelay.list_serial_ports()
-       for port in ports:
-           try:
-               # connect and send a ping command
-               ser = serial.Serial(port, timeout=1)
-               ser.write(b"ping\n")
-               response = ser.read_until("\n")
+        # Loop through all serial devices on the computer to check for the pico
+        self.port = None
+        ports = SerialRelay.list_serial_ports()
+        for port in ports:
+            try:
+                # connect and send a ping command
+                ser = serial.Serial(port, timeout=1)
+                ser.write(b"ping\n")
+                response = ser.read_until("\n")
 
-               # if pong is in response, then we are talking with the pico
-               if b"pong" in response:
-                   self.port = port
-                   print(f"Found pico at {self.port}!")
-                   break
-           except:
-               pass
-      
-       if self.port is None:
-           print("Unable to find pico... please make sure it is connected.")
-           sys.exit(1)
-      
-       self.ser = serial.Serial(self.port, 115200)
+                # if pong is in response, then we are talking with the pico
+                if b"pong" in response:
+                    self.port = port
+                    print(f"Found pico at {self.port}!")
+                    break
+            except:
+                pass
+        
+        if self.port is None:
+            print("Unable to find pico... please make sure it is connected.")
+            sys.exit(1)
+        
+        self.ser = serial.Serial(self.port, 115200)
 
-       self.heartbeat_client = self.create_client(Empty, '/astra/core/heartbeat')
-       self.connected: bool = False
-       while not self.heartbeat_client.wait_for_service(timeout_sec=2.0):
-           self.get_logger().info("Could not connect to Base Station. Retrying...")
+        self.heartbeat_client = self.create_client(Empty, '/astra/core/heartbeat')
+        self.connected: bool = False
+        while not self.heartbeat_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info("Could not connect to Base Station. Retrying...")
 
 
-       threading.Thread(target=self.heartbeat_thread, daemon=True)
+        threading.Thread(target=self.heartbeat_thread, daemon=True)
 
-   def run(self):
-       # This thread makes all the update processes run in the background
-       thread = threading.Thread(target=rclpy.spin, args={self}, daemon=True)
-       thread.start()
-      
-       try:
-           while rclpy.ok():
-               # Check the pico for updates
-               self.read_pico()
-               if not self.connected:
-                   self.send("auto,stop")
-       except KeyboardInterrupt:
-           sys.exit(0)
+    def run(self):
+        # This thread makes all the update processes run in the background
+        thread = threading.Thread(target=rclpy.spin, args={self}, daemon=True)
+        thread.start()
+        
+        try:
+            while rclpy.ok():
+                # Check the pico for updates
+                self.read_pico()
+                if not self.connected:
+                    self.send("auto,stop")
+        except KeyboardInterrupt:
+            sys.exit(0)
 
     def read_pico(self):
         output = str(self.ser.readline(), "utf8")
@@ -102,27 +102,27 @@ class SerialRelay(Node):
         command = msg.data + '\n'
         print(f"[Sys] {command}", end="")
 
-       # Send command to pico
-       self.ser.write(bytes(command, "utf8"))
-       #print(f"[Sys] Relaying: {command}")
+        # Send command to pico
+        self.ser.write(bytes(command, "utf8"))
+        #print(f"[Sys] Relaying: {command}")
 
 
-   def ping_callback(self, request, response):
-       return response
+    def ping_callback(self, request, response):
+        return response
 
-   def heartbeat_thread(self):
-       while True:
-           response = self.heartbeat_client.call_async(Empty.Request())
-           rclpy.spin_until_future_complete(self, response, timeout_sec=3.0)
-           if response:
-               self.connected = True
-           else:
-               self.connected = False
+    def heartbeat_thread(self):
+        while True:
+            response = self.heartbeat_client.call_async(Empty.Request())
+            rclpy.spin_until_future_complete(self, response, timeout_sec=3.0)
+            if response:
+                self.connected = True
+            else:
+                self.connected = False
 
 
-   @staticmethod
-   def list_serial_ports():
-       return glob.glob("/dev/ttyUSB*") + glob.glob("/dev/ttyACM*")
+    @staticmethod
+    def list_serial_ports():
+        return glob.glob("/dev/ttyUSB*") + glob.glob("/dev/ttyACM*")
       
 
 
