@@ -8,14 +8,16 @@ import threading
 import glob
 
 from std_msgs.msg import String
+from interfaces_pkg.msg import CoreFeedback
 
 class SerialRelay(Node):
    def __init__(self):
        # Initalize node with name
        super().__init__("serial_publisher")#previously 'serial_publisher'
 
-       # Create a publisher to publish any output the pico sends
-       self.publisher = self.create_publisher(String, '/astra/core/feedback', 10)
+        # Create a publisher to publish any output the pico sends
+        self.feedback_publisher = self.create_publisher(String, '/astra/core/feedback', 10) 
+        self.telemetry_publisher = self.create_publisher(CoreFeedback, '/astra/core/telemetry', 10)
 
        # Create a subscriber to listen to any commands sent for the pico
        self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
@@ -63,31 +65,42 @@ class SerialRelay(Node):
                self.read_pico()
                if not self.connected:
                    self.send("auto,stop")
-
-
        except KeyboardInterrupt:
            sys.exit(0)
 
-   def read_pico(self):
-       output = str(self.ser.readline(), "utf8")
-       if output:
-           print(f"[Pico] {output}", end="")
-           # Create a string message object
-           msg = String()
+    def read_pico(self):
+        output = str(self.ser.readline(), "utf8")
+        
+        if output:
+            packet = output.strip().split(',')
+            if packet[0] != "core" and packet[1] != "feedback":
+                print(f"[Pico] {output}", end="")
+                msg = String()
+                msg.data = output
+                self.feedback_publisher.publish(msg)
+                return
+            else:
+                feedback = CoreFeedback()
+                feedback.gpslat = float(packet[2])
+                feedback.gpslon = float(packet[3])
+                feedback.gpssats = float(packet[4])
+                feedback.bnogyr.x = float(packet[5])
+                feedback.bnogyr.y = float(packet[6])
+                feedback.bnogyr.z = float(packet[7])
+                feedback.bnoacc.x = float(packet[8])
+                feedback.bnoacc.y = float(packet[9])
+                feedback.bnoacc.z = float(packet[10])
+                feedback.orient = float(packet[11])
+                feedback.bmptemp = float(packet[12])
+                feedback.bmppres = float(packet[13])
+                feedback.bmpalt = float(packet[14])
 
+                self.telemetry_publisher.publish(feedback)
 
-           # Set message data
-           msg.data = output
-
-
-           # Publish data
-           self.publisher.publish(msg)
-           #print(f"[Pico] Publishing: {msg}")
-  
-   def send(self, msg):
-       command = msg.data + '\n'
-       print(f"[Sys] {command}", end="")
-
+    
+    def send(self, msg):
+        command = msg.data + '\n'
+        print(f"[Sys] {command}", end="")
 
        # Send command to pico
        self.ser.write(bytes(command, "utf8"))

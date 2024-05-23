@@ -70,9 +70,9 @@ void Stop();
 void goForwards(float speed);
 void goBackwards(float speed);
 void loopHeartbeats();
-void outputBno();
-void outputBmp();
-void outputGPS();
+string outputBno();
+string outputBmp();
+string outputGPS();
 void setLED(int r_val, int b_val, int g_val);
 void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
 
@@ -82,7 +82,9 @@ void parseInput(const String input, std::vector<String>& args, char delim); // p
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
+unsigned long lastFeedback;
 
+string feedback;
 
 unsigned long clockTimer = millis();
 
@@ -250,11 +252,15 @@ void loop() {
   // Useful for testing               //
   //----------------------------------//
 
-  if(0){
-    if((millis()-clockTimer)>50){
-      clockTimer = millis();
+  if((millis()-lastFeedback)>=2000){
+    
+    feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
+    //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
+    Serial.println(feedback);
+    
+    
+    lastFeedback = millis();
 
-    }
   }
 
 
@@ -302,10 +308,10 @@ void loop() {
     //
 
     if (args[0] == "ctrl") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
-        Serial.println("ctrl cmd received");
+        //Serial.println("ctrl cmd received");
         if(command != prevCommand)
         {
-          Serial.println("NEW COMMAND RECEIVED");
+          //Serial.println("NEW COMMAND RECEIVED");
 
           prevCommand = command;
 
@@ -363,34 +369,31 @@ void loop() {
 
           if(args[1] == "sendGPS"){ // data,sendGPS
 
-            outputGPS();
+            Serial.println(outputGPS());
 
           }else if(args[1] == "sendIMU"){ // data,sendIMU
 
-            outputBno();
+            Serial.println(outputBno());
 
           }else if(args[1] == "sendBMP"){ // data,sendBMP
 
-            outputBmp();
+            Serial.println(outputBmp());
 
           }else if(args[1] == "everything"){  // data,everything
 
-            outputGPS();
-            outputBno();
-            outputBmp();
+            Serial.println(outputGPS());
+            Serial.println(outputBno());
+            Serial.println(outputBmp());
 
           }else if(args[1] == "getOrientation"){  // data,getOrientation
             Serial.printf("orientation,%f\n", getBNOOrient(bno));
           }
         
-    } else if (args[1] == "led_set") {    //set LED strip color format: led_set,r,b,g
+    } else if (args[0] == "led_set") {    //set LED strip color format: led_set,r,b,g
       
       for(int i = 0; i < 3; i++)
       {
-        // scommand.erase(0, pos + delimiter.length());
-        // token = scommand.substr(0, pos);
-        // pos = scommand.find(delimiter);
-        led_rbg[i] = args[2].toInt();
+        led_rbg[i] = args[i+1].toInt();
       }
       
       setLED(led_rbg[0], led_rbg[1], led_rbg[2]);
@@ -422,27 +425,36 @@ void loop() {
 //-------------------------------------------------------//
 
 // Prints the output of the BNO in one line
-void outputBno()
+string outputBno()
 {
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
-  printf("bno,%f,%f,%f,%f,%f,%f,%f\n",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+  string output;
+  sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+  
+  return output;
 }
 
 // Prints the output of the GPS in one line
-void outputGPS()
+string outputGPS()
 {
   float gpsData[3];
   getPosition(myGNSS, gpsData);
-  printf("gps,%f,%f,%f\n",gpsData[0],gpsData[1],gpsData[2]);
+  string output;
+  sprintf(output, "%f,%f,%f",gpsData[0],gpsData[1],gpsData[2]);
+
+  return output;
 }
 
 // Prints the output of the BMP in one line
-void outputBmp()
+string outputBmp()
 {
   float bmpData[3];
   pullBMPData(bmp, bmpData);
-  printf("bmp,%f,%f,%f\n",bmpData[0],bmpData[1],bmpData[2]);
+  string output;
+  sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
+
+  return output;
 }
 
 // Bypasses the acceleration to make the rover turn clockwise
