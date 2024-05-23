@@ -22,6 +22,10 @@ class SerialRelay(Node):
         # Create a subscriber to listen to any commands sent for the pico
         self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
 
+
+        # Create a service server for pinging the rover
+        self.ping_service = self.create_service(Empty, '/astra/core/ping', self.ping_callback)
+
         # Loop through all serial devices on the computer to check for the pico
         self.port = None
         ports = SerialRelay.list_serial_ports()
