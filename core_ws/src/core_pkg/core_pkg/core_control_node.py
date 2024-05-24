@@ -15,18 +15,18 @@ class SerialRelay(Node):
         # Initalize node with name
         super().__init__("serial_publisher")#previously 'serial_publisher'
 
-        # Create a publisher to publish any output the pico sends
+        # Create a publisher to publish any output the MCU sends
         self.feedback_publisher = self.create_publisher(String, '/astra/core/feedback', 10) 
         self.telemetry_publisher = self.create_publisher(CoreFeedback, '/astra/core/telemetry', 10)
 
-        # Create a subscriber to listen to any commands sent for the pico
+        # Create a subscriber to listen to any commands sent for the MCU
         self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
 
 
         # Create a service server for pinging the rover
         self.ping_service = self.create_service(Empty, '/astra/core/ping', self.ping_callback)
 
-        # Loop through all serial devices on the computer to check for the pico
+        # Loop through all serial devices on the computer to check for the MCU
         self.port = None
         ports = SerialRelay.list_serial_ports()
         for port in ports:
@@ -36,7 +36,7 @@ class SerialRelay(Node):
                 ser.write(b"ping\n")
                 response = ser.read_until("\n")
 
-                # if pong is in response, then we are talking with the pico
+                # if pong is in response, then we are talking with the MCU
                 if b"pong" in response:
                     self.port = port
                     print(f"Found MCU at {self.port}!")
@@ -65,14 +65,14 @@ class SerialRelay(Node):
         
         try:
             while rclpy.ok():
-                # Check the pico for updates
-                self.read_pico()
+                # Check the MCU for updates
+                self.read_MCU()
                 #if not self.connected:
                 #    self.send("auto,stop")
         except KeyboardInterrupt:
             sys.exit(0)
 
-    def read_pico(self):
+    def read_MCU(self):
         output = str(self.ser.readline(), "utf8")
         
         if output:
@@ -95,7 +95,7 @@ class SerialRelay(Node):
 
                 self.telemetry_publisher.publish(feedback)
             else:
-                print(f"[Pico] {output}", end="")
+                print(f"[MCU] {output}", end="")
                 msg = String()
                 msg.data = output
                 self.feedback_publisher.publish(msg)
@@ -107,7 +107,7 @@ class SerialRelay(Node):
         command = msg.data + '\n'
         print(f"[Sys] {command}", end="")
 
-        # Send command to pico
+        # Send command to MCU
         self.ser.write(bytes(command, "utf8"))
         #print(f"[Sys] Relaying: {command}")
 
