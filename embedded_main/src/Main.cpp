@@ -75,6 +75,7 @@ String outputBmp();
 String outputGPS();
 void setLED(int r_val, int b_val, int g_val);
 void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
+void safety_timeout();
 
 
 
@@ -83,6 +84,7 @@ unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
 unsigned long lastFeedback;
+unsigned long lastCtrlCmd;
 
 String feedback;
 
@@ -309,6 +311,7 @@ void loop() {
 
     if (args[0] == "ctrl") {                          // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         //Serial.println("ctrl cmd received");
+        lastCtrlCmd = millis();
         if(command != prevCommand)
         {
           //Serial.println("NEW COMMAND RECEIVED");
@@ -331,6 +334,7 @@ void loop() {
       // pos = scommand.find(delimiter);
       // //Motor1.setMotorMultiplier(stof(token));
     }else if (args[0] == "auto") {  // Commands for autonomy
+        lastCtrlCmd = millis();
         if(command != prevCommand)
         {
           if(args[1] == "turningTo"){ // auto,turningTo
@@ -423,6 +427,13 @@ void loop() {
 //    //             //           \//      //////////    //
 //                                                       //
 //-------------------------------------------------------//
+
+void safety_timeout(){
+  if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
+  {
+    Stop();
+  }
+}
 
 // Prints the output of the BNO in one line
 String outputBno()
