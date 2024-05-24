@@ -25,10 +25,10 @@ class SerialRelay(Node):
         # Create a publisher to publish any output the MCU sends
         self.feedback_publisher = self.create_publisher(String, '/astra/core/feedback', 10) 
         self.telemetry_publisher = self.create_publisher(CoreFeedback, '/astra/core/telemetry', 10)
-        self.faerie_publisher = self.create_publisher(String, '/astra/arm/bio/feedback', 10)
 
         # Create a subscriber to listen to any commands sent for the MCU
         self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
+        
 
 
         # Create a service server for pinging the rover
@@ -94,12 +94,6 @@ class SerialRelay(Node):
             
             if output:
                 packet = output.strip().split(',')
-                if len(packet) == 3 and packet[0] == "faeriesht":#faieriesht,temp,humidity
-                    print(f"[FAERIE] {output}", end="")
-                    msg = String()
-                    msg.data = output
-                    self.faerie_publisher.publish(msg)
-                    return
                 
                 if len(packet) >= 2 and packet[0] == "core" and packet[1] == "feedback":
                     feedback = CoreFeedback()
