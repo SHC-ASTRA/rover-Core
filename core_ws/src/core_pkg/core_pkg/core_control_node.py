@@ -77,12 +77,13 @@ class SerialRelay(Node):
         
         if output:
             packet = output.strip().split(',')
-            if packet[0] != "core" and packet[1] != "feedback":
-                print(f"[Pico] {output}", end="")
-                msg = String()
-                msg.data = output
-                self.feedback_publisher.publish(msg)
-                return
+            if len(packet) >= 2:
+                if packet[0] != "core" and packet[1] != "feedback":
+                    print(f"[Pico] {output}", end="")
+                    msg = String()
+                    msg.data = output
+                    self.feedback_publisher.publish(msg)
+                    return
             else:
                 feedback = CoreFeedback()
                 feedback.gpslat = float(packet[2])
