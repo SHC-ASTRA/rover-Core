@@ -45,18 +45,18 @@ class SerialRelay(Node):
                 pass
         
         if self.port is None:
-            print("Unable to find pico... please make sure it is connected.")
+            print("Unable to find MCU... please make sure it is connected.")
             sys.exit(1)
         
         self.ser = serial.Serial(self.port, 115200)
 
-        self.heartbeat_client = self.create_client(Empty, '/astra/core/heartbeat')
-        self.connected: bool = False
-        while not self.heartbeat_client.wait_for_service(timeout_sec=2.0):
-            self.get_logger().info("Could not connect to Base Station. Retrying...")
+        #self.heartbeat_client = self.create_client(Empty, '/astra/core/heartbeat')
+        #self.connected: bool = False
+        #while not self.heartbeat_client.wait_for_service(timeout_sec=2.0):
+        #    self.get_logger().info("Could not connect to Base Station. Retrying...")
 
 
-        threading.Thread(target=self.heartbeat_thread, daemon=True)
+        #threading.Thread(target=self.heartbeat_thread, daemon=True)
 
     def run(self):
         # This thread makes all the update processes run in the background
@@ -67,8 +67,8 @@ class SerialRelay(Node):
             while rclpy.ok():
                 # Check the pico for updates
                 self.read_pico()
-                if not self.connected:
-                    self.send("auto,stop")
+                #if not self.connected:
+                #    self.send("auto,stop")
         except KeyboardInterrupt:
             sys.exit(0)
 
