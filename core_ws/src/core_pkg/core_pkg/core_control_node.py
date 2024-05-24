@@ -101,7 +101,7 @@ class SerialRelay(Node):
 
                 self.telemetry_publisher.publish(feedback)
 
-    
+
     def send(self, msg):
         command = msg.data + '\n'
         print(f"[Sys] {command}", end="")
