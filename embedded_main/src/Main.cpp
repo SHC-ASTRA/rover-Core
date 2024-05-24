@@ -496,6 +496,11 @@ void Stop(){
   sendDutyCycle(Can0, motorList[1].getID(), 0);
   sendDutyCycle(Can0, motorList[2].getID(), 0);
   sendDutyCycle(Can0, motorList[3].getID(), 0);
+
+  motorList[0].setDuty(0.0);
+  motorList[1].setDuty(0.0);
+  motorList[2].setDuty(0.0);
+  motorList[3].setDuty(0.0);
 }
 
 // Tells the rover to go forwards
