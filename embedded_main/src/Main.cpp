@@ -227,6 +227,8 @@ void loop() {
   
   // Accelerate the motors
   // Every 50 milliseconds, update the speed for all motors
+  safety_timeout();
+
   if(millis()-lastAccel >= 50){
     lastAccel = millis();
     for(int i = 0; i < 4; i++)
@@ -259,7 +261,6 @@ void loop() {
     feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
     //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
     //Serial.println(feedback);
-    
     
     lastFeedback = millis();
 
@@ -431,7 +432,9 @@ void loop() {
 void safety_timeout(){
   if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
   {
+    lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
     Stop();
+    Serial.println("No Control / Safety Timeout");
   }
 }
 
