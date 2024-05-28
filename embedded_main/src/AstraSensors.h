@@ -63,12 +63,12 @@ void pullBNOData(Adafruit_BNO055 &bno, float (& bno_data)[7])
     bno.getEvent(&event);
 
     bno_data[0] = event.gyro.x;//pitch
-    bno_data[1] = event.gyro.z;//roll
-    bno_data[2] = event.gyro.y;//yaw
+    bno_data[1] = event.gyro.y;//yaw
+    bno_data[2] = event.gyro.z;//roll
 
     bno_data[3] = event.acceleration.x;//pitch
-    bno_data[4] = event.acceleration.z;//roll
-    bno_data[5] = event.acceleration.y;//yaw
+    bno_data[4] = event.acceleration.y;//yaw
+    bno_data[5] = event.acceleration.z;//roll
 
     bno_data[6] = event.orientation.x;//Absolute Orientation/Heading 
 
