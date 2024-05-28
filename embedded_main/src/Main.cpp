@@ -83,10 +83,10 @@ void safety_timeout();
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
-unsigned long lastFeedback;
+unsigned long lastTelemetry;
 unsigned long lastCtrlCmd;
 
-String feedback;
+String telemetry;
 
 unsigned long clockTimer = millis();
 
@@ -256,13 +256,13 @@ void loop() {
   // Useful for testing               //
   //----------------------------------//
 
-  if((millis()-lastFeedback)>=2000){
+  if((millis()-lastTelemetry)>=2000){
     
-    feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
-    //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
-    //Serial.println(feedback);
+    telemetry = "core,telemetry," + outputGPS() + "," + outputBno() + "," + outputBmp();
+    // core,telemetry,gps,lat,long,sats,,gyro_x,y,z,acc_x,y,z,heading,,temp,pressure,altitude
+    Serial.println(telemetry);
     
-    lastFeedback = millis();
+    lastTelemetry = millis();
 
   }
 
@@ -444,8 +444,7 @@ String outputBno()
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
   String output;
-  //sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
-  
+  output = String(bnoData2[0]) + "," + String(bnoData2[1]) + "," + String(bnoData2[2]) + "," + String(bnoData2[3]) + "," + String(bnoData2[4]) + "," + String(bnoData2[5]) + "," + String(bnoData2[6]);
   return output;
 }
 
@@ -455,8 +454,7 @@ String outputGPS()
   float gpsData[3];
   getPosition(myGNSS, gpsData);
   String output;
-  //sprintf(output, "%f,%f,%f",gpsData[0],gpsData[1],gpsData[2]);
-
+  output = String(gpsData[0]) + "," + String(gpsData[1]) + "," + String(gpsData[2]);
   return output;
 }
 
@@ -466,7 +464,7 @@ String outputBmp()
   float bmpData[3];
   pullBMPData(bmp, bmpData);
   String output;
-  //sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
+  output = String(bmpData[0]) + "," + String(bmpData[1]) + "," + String(bmpData[2]);
 
   return output;
 }
