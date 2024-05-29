@@ -106,6 +106,8 @@ void getPosition(SFE_UBLOX_GNSS &myGNSS, float(& gps_data)[3])
     gps_data[0] = myGNSS.getLatitude()/10000000.0;
     gps_data[1] = myGNSS.getLongitude()/10000000.0;
     gps_data[2] = uint8_t(myGNSS.getSIV());
+    Serial.println(gps_data[0]);
+    Serial.println(gps_data[1]);
 }
 
 String getUTC(SFE_UBLOX_GNSS &myGNSS)

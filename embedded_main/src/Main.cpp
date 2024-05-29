@@ -17,14 +17,14 @@ using namespace std;
 
 
 #define LED_STRIP_PIN 10
-#define NUM_LEDS 166
+#define NUM_LEDS 40
 //strip 1: 1-40
 //strip 2: 41-82
 //strip 3: 83-124
 //strip 4: 125-166
 //CCW: 1,2,3,4
 
-int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+int led_rbg[3] = {0, 1000, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
 
 CRGB leds[NUM_LEDS];
@@ -114,7 +114,7 @@ void setup() {
     pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
 
-    FastLED.addLeds<WS2812B, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(255);
     for(int i = 0; i < NUM_LEDS; ++i)
     {
@@ -131,7 +131,9 @@ void setup() {
   //--------------------//
     if(!bno.begin())
     {
+      while(1){
       Serial.println("!BNO failed to start...");
+      }
     }else{
       Serial.println("BNO055 Started Successfully");
     }if(!bmp.begin_I2C()) {
@@ -143,9 +145,10 @@ void setup() {
     }else{
       Serial.println("GPS is working");
     }
-
+  
+  bmp.readAltitude(SEALEVELPRESSURE_HPA);
   initializeBMP(bmp);
-
+  
 
 
 // Setup for GPS
