@@ -17,14 +17,14 @@ using namespace std;
 
 
 #define LED_STRIP_PIN 10
-#define NUM_LEDS 40
+#define NUM_LEDS 166
 //strip 1: 1-40
 //strip 2: 41-82
 //strip 3: 83-124
 //strip 4: 125-166
 //CCW: 1,2,3,4
 
-int led_rbg[3] = {0, 1000, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
 
 CRGB leds[NUM_LEDS];
@@ -83,10 +83,10 @@ void safety_timeout();
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
-unsigned long lastTelemetry;
+unsigned long lastFeedback;
 unsigned long lastCtrlCmd;
 
-String telemetry;
+String feedback;
 
 unsigned long clockTimer = millis();
 
@@ -114,7 +114,7 @@ void setup() {
     pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
 
-    FastLED.addLeds<WS2812, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812B, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(255);
     for(int i = 0; i < NUM_LEDS; ++i)
     {
@@ -143,10 +143,9 @@ void setup() {
     }else{
       Serial.println("GPS is working");
     }
-  
-  bmp.readAltitude(SEALEVELPRESSURE_HPA);
+
   initializeBMP(bmp);
-  
+
 
 
 // Setup for GPS
@@ -257,12 +256,24 @@ void loop() {
   // Useful for testing               //
   //----------------------------------//
 
-  if((millis()-lastTelemetry)>=2000){
-    telemetry = "core,telemetry," + outputGPS() + "," + outputBno() + "," + outputBmp();
-    // core,telemetry,gps,lat,long,sats,,gyro_x,y,z,acc_x,y,z,heading,,temp,pressure,altitude
-    Serial.println(telemetry);
+  if((millis()-lastFeedback)>=2000){
     
-    lastTelemetry = millis();
+    //feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
+    double gpsData[3];
+    float bnoData2[7];
+
+    getPosition(myGNSS, gpsData);
+    pullBNOData(bno, bnoData2);
+
+    Serial.print("core,telemetry,");
+    Serial.print(gpsData[0],7);
+    Serial.print(",");
+    Serial.print(gpsData[1],7);
+    Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", (int)gpsData[2], bnoData2[0], bnoData2[1], bnoData2[2], bnoData2[3], bnoData2[4], bnoData2[5], bnoData2[6], bmp.temperature, bmp.pressure, bmp.readAltitude(SEALEVELPRESSURE_HPA));
+    //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
+    //Serial.println(feedback);
+    
+    lastFeedback = millis();
 
   }
 
@@ -391,25 +402,7 @@ void loop() {
             Serial.println(outputBmp());
 
           }else if(args[1] == "getOrientation"){  // data,getOrientation
-
             Serial.printf("orientation,%f\n", getBNOOrient(bno));
-            
-          }else if(args[1] == "sensCheck"){  // data,sensCheck
-
-            if(!bno.begin())
-            {
-              Serial.println("!BNO failed to start...");
-            }else{
-              Serial.println("BNO055 Started Successfully");
-            }if(!bmp.begin_I2C()) {
-              Serial.println("bmp not working");
-            }else{
-              Serial.println("bmp is working");
-            }if(!myGNSS.begin()){
-              Serial.println("GPS not working");
-            }else{
-              Serial.println("GPS is working");
-            }
           }
         
     } else if (args[0] == "led_set") {    //set LED strip color format: led_set,r,b,g
@@ -462,17 +455,19 @@ String outputBno()
   float bnoData2[7];
   pullBNOData(bno,bnoData2);
   String output;
-  output = String(bnoData2[0]) + "," + String(bnoData2[1]) + "," + String(bnoData2[2]) + "," + String(bnoData2[3]) + "," + String(bnoData2[4]) + "," + String(bnoData2[5]) + "," + String(bnoData2[6]);
+  //sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+  
   return output;
 }
 
 // Prints the output of the GPS in one line
 String outputGPS()
 {
-  float gpsData[3];
-  getPosition(myGNSS, gpsData);
-  String output;
-  output = String(gpsData[0]) + "," + String(gpsData[1]) + "," + String(gpsData[2]);
+  /*double gpsData[3];
+  getPosition(myGNSS, gpsData);*/
+  String output = "ahhh";
+  //sprintf(output, "%f,%f,%f",gpsData[0],gpsData[1],gpsData[2]);
+
   return output;
 }
 
@@ -482,7 +477,7 @@ String outputBmp()
   float bmpData[3];
   pullBMPData(bmp, bmpData);
   String output;
-  output = String(bmpData[0]) + "," + String(bmpData[1]) + "," + String(bmpData[2]);
+  //sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
 
   return output;
 }

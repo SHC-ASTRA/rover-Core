@@ -101,19 +101,22 @@ float getBNOOrient(Adafruit_BNO055 &bno)
     return event.orientation.x;//Absolute Orientation/Heading 
 }
 
-void getPosition(SFE_UBLOX_GNSS &myGNSS, float(& gps_data)[3])
+void getPosition(SFE_UBLOX_GNSS &myGNSS, double(& gps_data)[3])
 {
     gps_data[0] = myGNSS.getLatitude()/10000000.0;
     gps_data[1] = myGNSS.getLongitude()/10000000.0;
     gps_data[2] = uint8_t(myGNSS.getSIV());
-    Serial.print("Raw GPS Data:    ");
+
+    // Serial.println(gps_data[0],7);
+    // Serial.println(gps_data[1],7);
+    /*Serial.print("Raw GPS Data:    ");
     Serial.print(gps_data[0]);
     Serial.print(",   ");
     Serial.print(gps_data[1]);
     Serial.print("    /    Rounded GPS Data:    ");
     Serial.print(gps_data[0]/10000000.0);
     Serial.print(",   ");
-    Serial.println(gps_data[1]/10000000.0);
+    Serial.println(gps_data[1]/10000000.0);*/
 }
 
 String getUTC(SFE_UBLOX_GNSS &myGNSS)
