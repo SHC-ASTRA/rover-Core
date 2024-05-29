@@ -95,7 +95,7 @@ class SerialRelay(Node):
             if output:
                 packet = output.strip().split(',')
                 
-                if len(packet) >= 2 and packet[0] == "core" and packet[1] == "feedback":
+                if len(packet) >= 2 and packet[0] == "core" and packet[1] == "telemetry":
                     feedback = CoreFeedback()
                     feedback.gpslat = float(packet[2])
                     feedback.gpslon = float(packet[3])
