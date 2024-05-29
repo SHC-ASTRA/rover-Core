@@ -72,6 +72,9 @@ void pullBNOData(Adafruit_BNO055 &bno, float (& bno_data)[7])
 
     bno_data[6] = event.orientation.x;//Absolute Orientation/Heading 
 
+
+    
+
     /*
     float mag_p = event.magnetic.x;//pitch
     float mag_r = event.magnetic.z;//roll

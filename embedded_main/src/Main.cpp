@@ -386,6 +386,8 @@ void loop() {
           if(args[1] == "sendGPS"){ // data,sendGPS
 
             Serial.println(outputGPS());
+            //To ensure precision output this will print null
+            //but the outputGPS() function will Serial.print values directly in-function
 
           }else if(args[1] == "sendIMU"){ // data,sendIMU
 
@@ -463,11 +465,14 @@ String outputBno()
 // Prints the output of the GPS in one line
 String outputGPS()
 {
-  /*double gpsData[3];
-  getPosition(myGNSS, gpsData);*/
-  String output = "ahhh";
-  //sprintf(output, "%f,%f,%f",gpsData[0],gpsData[1],gpsData[2]);
-
+  String output = "null";
+  double gpsData[3];
+  getPosition(myGNSS, gpsData);
+  Serial.print(gpsData[0],7);
+  Serial.print(",");
+  Serial.print(gpsData[1],7);
+  Serial.println();
+  
   return output;
 }
 
