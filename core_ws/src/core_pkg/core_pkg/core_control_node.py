@@ -99,7 +99,7 @@ class SerialRelay(Node):
                     feedback = CoreFeedback()
                     feedback.gpslat = float(packet[2])
                     feedback.gpslon = float(packet[3])
-                    feedback.gpssats = float(packet[4])
+                    feedback.gpssat = float(packet[4])
                     feedback.bnogyr.x = float(packet[5])
                     feedback.bnogyr.y = float(packet[6])
                     feedback.bnogyr.z = float(packet[7])
