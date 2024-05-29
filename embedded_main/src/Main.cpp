@@ -131,9 +131,7 @@ void setup() {
   //--------------------//
     if(!bno.begin())
     {
-      while(1){
       Serial.println("!BNO failed to start...");
-      }
     }else{
       Serial.println("BNO055 Started Successfully");
     }if(!bmp.begin_I2C()) {
@@ -260,7 +258,6 @@ void loop() {
   //----------------------------------//
 
   if((millis()-lastTelemetry)>=2000){
-    
     telemetry = "core,telemetry," + outputGPS() + "," + outputBno() + "," + outputBmp();
     // core,telemetry,gps,lat,long,sats,,gyro_x,y,z,acc_x,y,z,heading,,temp,pressure,altitude
     Serial.println(telemetry);
@@ -394,7 +391,25 @@ void loop() {
             Serial.println(outputBmp());
 
           }else if(args[1] == "getOrientation"){  // data,getOrientation
+
             Serial.printf("orientation,%f\n", getBNOOrient(bno));
+            
+          }else if(args[1] == "sensCheck"){  // data,sensCheck
+
+            if(!bno.begin())
+            {
+              Serial.println("!BNO failed to start...");
+            }else{
+              Serial.println("BNO055 Started Successfully");
+            }if(!bmp.begin_I2C()) {
+              Serial.println("bmp not working");
+            }else{
+              Serial.println("bmp is working");
+            }if(!myGNSS.begin()){
+              Serial.println("GPS not working");
+            }else{
+              Serial.println("GPS is working");
+            }
           }
         
     } else if (args[0] == "led_set") {    //set LED strip color format: led_set,r,b,g
