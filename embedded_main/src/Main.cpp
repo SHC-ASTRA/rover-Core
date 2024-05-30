@@ -72,7 +72,7 @@ void goBackwards(float speed);
 void loopHeartbeats();
 String outputBno();
 String outputBmp();
-String outputGPS();
+void outputGPS();
 void setLED(int r_val, int b_val, int g_val);
 void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
 void safety_timeout();
@@ -384,8 +384,8 @@ void loop() {
 
 
           if(args[1] == "sendGPS"){ // data,sendGPS
-
-            Serial.println(outputGPS());
+            outputGPS();
+            //Serial.println(outputGPS());
             //To ensure precision output this will print null
             //but the outputGPS() function will Serial.print values directly in-function
 
@@ -399,7 +399,7 @@ void loop() {
 
           }else if(args[1] == "everything"){  // data,everything
 
-            Serial.println(outputGPS());
+            //Serial.println(outputGPS());
             Serial.println(outputBno());
             Serial.println(outputBmp());
 
@@ -463,17 +463,18 @@ String outputBno()
 }
 
 // Prints the output of the GPS in one line
-String outputGPS()
+void outputGPS()
 {
   String output = "null";
   double gpsData[3];
   getPosition(myGNSS, gpsData);
+  Serial.print("gps,");
   Serial.print(gpsData[0],7);
   Serial.print(",");
   Serial.print(gpsData[1],7);
   Serial.println();
   
-  return output;
+  //return output;
 }
 
 // Prints the output of the BMP in one line
