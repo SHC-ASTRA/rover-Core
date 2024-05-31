@@ -378,6 +378,18 @@ void loop() {
       // token = scommand.substr(0, pos);
       // pos = scommand.find(delimiter);
       // //Motor1.setMotorMultiplier(stof(token));
+    }else if (args[0] == "brake") {
+        if(args[1] == "on") {
+            setParameter(Can0, 1, 6, 1);
+            setParameter(Can0, 2, 6, 1);
+            setParameter(Can0, 3, 6, 1);
+            setParameter(Can0, 4, 6, 1);
+        } else if(args[1] == "off") {
+            setParameter(Can0, 1, 6, 0);
+            setParameter(Can0, 2, 6, 0);
+            setParameter(Can0, 3, 6, 0);
+            setParameter(Can0, 4, 6, 0);
+        }
     }else if (args[0] == "auto") {  // Commands for autonomy
         lastCtrlCmd = millis();
         if(command != prevCommand)

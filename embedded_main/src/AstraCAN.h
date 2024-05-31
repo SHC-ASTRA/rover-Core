@@ -53,3 +53,13 @@ inline void sendHeartbeat(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int c
   //Serial.println(msg.id);
 }
 
+inline void setParameter(FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> &Can0, int can_id, uint8_t paramID, uint32_t value) {
+  CAN_message_t msg;
+  msg.flags.extended = 1;
+  msg.len = 5;
+
+  msg.id = 0x205C000 + can_id;
+  Float2LEDec(value, msg.buf);  // Set the parameter to this
+  msg.buf[4] = paramID;         // Parameter ID
+  Can0.write(msg);
+}
