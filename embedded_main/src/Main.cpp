@@ -257,6 +257,14 @@ void loop() {
   //----------------------------------//
 
   if((millis()-lastFeedback)>=2000){
+    sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
+    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+    bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
+    bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
+    bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+    bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
+
     
     //feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
     double gpsData[3];
@@ -269,7 +277,32 @@ void loop() {
     Serial.print(gpsData[0],7);
     Serial.print(",");
     Serial.print(gpsData[1],7);
-    Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", (int)gpsData[2], bnoData2[0], bnoData2[1], bnoData2[2], bnoData2[3], bnoData2[4], bnoData2[5], bnoData2[6], bmp.temperature, bmp.pressure, bmp.readAltitude(SEALEVELPRESSURE_HPA));
+    Serial.print(",");
+    Serial.print((int)gpsData[2]);
+    Serial.print(",");
+    Serial.print(angVelocityData.gyro.x);
+    Serial.print(",");
+    Serial.print(angVelocityData.gyro.y);
+    Serial.print(",");
+    Serial.print(angVelocityData.gyro.z);
+    Serial.print(",");
+    Serial.print(accelerometerData.acceleration.x);
+    Serial.print(",");
+    Serial.print(accelerometerData.acceleration.y);
+    Serial.print(",");
+    Serial.print(accelerometerData.acceleration.z);
+    Serial.print(",");
+    Serial.print(orientationData.orientation.x);
+    Serial.print(",");
+    Serial.print(bmp.temperature);
+    Serial.print(",");
+    Serial.print(bmp.pressure);
+    Serial.print(",");
+    Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
+    Serial.println();
+    
+
+    //Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", , , , , , , , , , , );
     //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
     //Serial.println(feedback);
     
