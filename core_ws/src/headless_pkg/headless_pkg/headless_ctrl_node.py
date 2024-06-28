@@ -12,10 +12,10 @@ import glob
 
 from std_msgs.msg import String
 
-class BaseStation(Node):
+class Headless(Node):
     def __init__(self):
         # Initalize node with name
-        super().__init__("test_bs")
+        super().__init__("headless_ctrl")
 
         self.create_timer(0.10, self.send_controls)
 
@@ -25,7 +25,7 @@ class BaseStation(Node):
 
         # Create a subscriber to listen to any commands sent for the pico
         self.subscriber = self.create_subscription(String, '/astra/core/feedback', self.read_feedback, 10)
-        self.subscriber
+        #self.subscriber
 
 
         self.lastMsg = String() #Used to ignore sending controls repeatedly when they do not change
@@ -69,10 +69,10 @@ class BaseStation(Node):
                 self.read_feedback()
                 if pygame.joystick.get_count() == 0: #if controller disconnected, wait for it to be reconnected
                     print(f"Gamepad disconnected: {self.gamepad.get_name()}")
-
+                    
                     while pygame.joystick.get_count() == 0:
+                        self.send_controls()
                         self.read_feedback()
-
                     self.gamepad = pygame.joystick.Joystick(0)
                     self.gamepad.init() #re-initialized gamepad
                     print(f"Gamepad reconnected: {self.gamepad.get_name()}")
@@ -98,11 +98,14 @@ class BaseStation(Node):
         right_t = self.gamepad.get_axis(5)#right trigger
 
 
-
-        if right_t > 0:#single-stick control mode
-            output = f'ctrl,{round(right_y,4)},{round(right_y,4)}'
+        if pygame.joystick.get_count() != 0:
+        
+            if right_t > 0:#single-stick control mode
+                output = f'ctrl,{round(right_y,2)},{round(right_y,2)}'
+            else:
+                output = f'ctrl,{round(left_y,2)},{round(right_y,2)}'
         else:
-            output = f'ctrl,{round(left_y,4)},{round(right_y,4)}'
+            output = 'ctrl,0,0' #stop the rover if there is no controller connected
 
 
         #print(f"[Controls] {output}", end="")
@@ -133,7 +136,7 @@ class BaseStation(Node):
         # Publish data
         #self.publisher.publish(msg.data)
         
-        print(f"[Pico] {msg.data}", end="")
+        print(f"[MCU] {msg.data}", end="")
         #print(f"[Pico] Publishing: {msg}")
 
         
@@ -141,7 +144,7 @@ class BaseStation(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    node = BaseStation()
+    node = Headless()
     
     rclpy.spin(node)
     rclpy.shutdown()

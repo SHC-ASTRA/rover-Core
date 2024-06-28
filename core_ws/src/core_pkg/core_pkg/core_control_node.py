@@ -27,6 +27,7 @@ class SerialRelay(Node):
         self.telemetry_publisher = self.create_publisher(CoreFeedback, '/astra/core/telemetry', 10)
 
         # Create a subscriber to listen to any commands sent for the MCU
+        # Create a subscriber to listen to any commands sent for the MCU
         self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
         
 
@@ -142,6 +143,7 @@ class SerialRelay(Node):
         command = msg.data + '\n'
         print(f"[Sys] {command}", end="")
 
+        # Send command to MCU
         # Send command to MCU
         self.ser.write(bytes(command, "utf8"))
         #print(f"[Sys] Relaying: {command}")
