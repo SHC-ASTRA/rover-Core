@@ -8,6 +8,8 @@
 #include <utility/imumaths.h>
 #include <FastLED.h>
 // Our own resources
+#include "project/CORE.h"
+#include "AstraMisc.h"
 #include "AstraMotors.h"
 #include "AstraCAN.h"
 #include "AstraSensors.h"
@@ -16,7 +18,6 @@
 using namespace std;
 
 
-#define LED_STRIP_PIN 10
 #define NUM_LEDS 166
 //strip 1: 1-40
 //strip 2: 41-82
@@ -30,14 +31,6 @@ int led_counter = 0;
 CRGB leds[NUM_LEDS];
 
 
-#define LED_PIN 13 //Builtin LED pin for Teensy 4.1 (pin 25 for pi Pico)
-
-
-#define LED_PIN 13 //Builtin LED pin for Teensy 4.1 (pin 25 for pi Pico)
-
-#define BMP_SCK 13
-#define BMP_MISO 12
-#define BMP_MOSI 11
 #define BMP_CS 10
 
 #define SEALEVELPRESSURE_HPA (1013.25)
@@ -50,7 +43,7 @@ SFE_UBLOX_GNSS myGNSS;
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
 //Setting up for CAN0 line
-FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> Can0;
+AstraFCAN Can0;
 
 //AstraMotors(int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
 AstraMotors Motor1(2, 1, false, 50, 1.00F);//Front Left
@@ -97,12 +90,12 @@ void setup() {
   // Initialize Pins //
   //-----------------//
   
-    pinMode(LED_PIN, OUTPUT);
-    Serial.begin(115200);
-    digitalWrite(LED_PIN, HIGH);
+    pinMode(LED_BUILTIN, OUTPUT);
+    Serial.begin(SERIAL_BAUD);
+    digitalWrite(LED_BUILTIN, HIGH);
 
     delay(2000);
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
 
     // Initalization for using CAN with the sparkmax
     Can0.begin();
@@ -114,7 +107,7 @@ void setup() {
     pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
 
-    FastLED.addLeds<WS2812B, LED_STRIP_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(255);
     for(int i = 0; i < NUM_LEDS; ++i)
     {
@@ -129,18 +122,19 @@ void setup() {
   //--------------------//
   // Initialize Sensors //
   //--------------------//
-    if(!bno.begin())
-    {
+    if(!bno.begin()) {
       Serial.println("!BNO failed to start...");
-    }else{
+    } else {
       Serial.println("BNO055 Started Successfully");
-    }if(!bmp.begin_I2C()) {
+    }
+    if(!bmp.begin_I2C()) {
       Serial.println("bmp not working");
-    }else{
+    } else {
       Serial.println("bmp is working");
-    }if(!myGNSS.begin()){
+    }
+    if(!myGNSS.begin()) {
       Serial.println("GPS not working");
-    }else{
+    } else {
       Serial.println("GPS is working");
     }
 
