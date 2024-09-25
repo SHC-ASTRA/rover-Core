@@ -11,17 +11,18 @@ import threading
 import glob
 
 from std_msgs.msg import String
+from interfaces_pkg.msg import ControllerState
 
 class Headless(Node):
     def __init__(self):
         # Initalize node with name
         super().__init__("headless_ctrl")
 
-        self.create_timer(0.10, self.send_controls)
+        self.create_timer(0.20, self.send_controls)
 
 
         # Create a publisher to publish any output the pico sends
-        self.publisher = self.create_publisher(String, '/astra/core/control', 10) 
+        self.publisher = self.create_publisher(ControllerState, '/astra/core/control', 10) 
 
         # Create a subscriber to listen to any commands sent for the pico
         self.subscriber = self.create_subscription(String, '/astra/core/feedback', self.read_feedback, 10)
@@ -83,12 +84,12 @@ class Headless(Node):
         
 
     def send_controls(self):
-
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-
+        input = ControllerState()
 
         left_x = self.gamepad.get_axis(0)#left x-axis
         left_y = self.gamepad.get_axis(1)#lext y-axis
@@ -101,28 +102,27 @@ class Headless(Node):
         if pygame.joystick.get_count() != 0:
         
             if right_t > 0:#single-stick control mode
-                output = f'ctrl,{round(right_y,2)},{round(right_y,2)}'
+                output = f'{round(right_y,2)},{round(right_y,2)}'
+                input.left_y = round(right_y,2)
+                input.right_y = round(right_y,2)
             else:
-                output = f'ctrl,{round(left_y,2)},{round(right_y,2)}'
+                output = f'{round(left_y,2)},{round(right_y,2)}'
+                input.left_y = round(left_y,2)
+                input.right_y = round(right_y,2)
         else:
+            input.left_y = 0
+            input.right_y = 0
             output = 'ctrl,0,0' #stop the rover if there is no controller connected
 
 
         #print(f"[Controls] {output}", end="")
         self.get_logger().info(f"[Ctrl] {output}")
-        # Create a string message object
-        msg = String()
+      
 
-        # Set message data
-        msg.data = output
 
-        #only publish commands when the values are updated
-        if self.lastMsg != msg:
-            # Publish data
-            self.publisher.publish(msg)
-            
-            self.lastMsg = msg
-            #print(f"[Pico] Publishing: {msg}")
+        self.publisher.publish(input)
+        #removed the check to remove duplicate messages back-to-back
+        #if inpput != self.lastMsg: then don't send the message
 
 
     def read_feedback(self, msg):

@@ -13,6 +13,7 @@ import glob
 
 from std_msgs.msg import String
 from interfaces_pkg.msg import CoreFeedback
+from interfaces_pkg.msg import ControllerState
 
 serial_pub = None
 thread = None
@@ -28,7 +29,7 @@ class SerialRelay(Node):
 
         # Create a subscriber to listen to any commands sent for the MCU
         # Create a subscriber to listen to any commands sent for the MCU
-        self.subscriber = self.create_subscription(String, '/astra/core/control', self.send, 10)
+        self.subscriber = self.create_subscription(ControllerState, '/astra/core/control', self.send_controls, 10)
         
 
 
@@ -139,11 +140,11 @@ class SerialRelay(Node):
                 
 
 
-    def send(self, msg):
-        command = msg.data + '\n'
+    def send_controls(self, msg):
+        #command = msg.data + '\n'
+        command = "ctrl," + msg.ls_y + ',' + msg.rs_y + '\n'
         print(f"[Sys] {command}", end="")
 
-        # Send command to MCU
         # Send command to MCU
         self.ser.write(bytes(command, "utf8"))
         #print(f"[Sys] Relaying: {command}")
