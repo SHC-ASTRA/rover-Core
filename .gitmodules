@@ -1,0 +1,3 @@
+[submodule "core_ws/src/ROS2_Interfaces"]
+	path = core_ws/src/ROS2_Interfaces
+	url = git@github.com:SHC-ASTRA/ROS2_Interfaces.git
