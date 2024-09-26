@@ -10,8 +10,9 @@ import sys
 import threading
 import glob
 
+import importlib
 from std_msgs.msg import String
-from interfaces_pkg.msg import ControllerState
+from ...ROS2_Interfaces.interfaces_pkg.msg import ControllerState
 
 class Headless(Node):
     def __init__(self):
