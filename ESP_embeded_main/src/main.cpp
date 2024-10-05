@@ -104,6 +104,34 @@ void setup() {
     Can0.enableFIFO();
     Can0.enableFIFOInterrupt();
 
+
+    Can0.setPins(CAN_TX, CAN_RX);
+	
+    // You can set custom size for the queues - those are default
+    Can0.setRxQueueSize(5);
+	  Can0.setTxQueueSize(5);
+
+    // .setSpeed() and .begin() functions require to use TwaiSpeed enum,
+    // but you can easily convert it from numerical value using .convertSpeed()
+    Can0.setSpeed(Can0.convertSpeed(500));
+
+    // You can also just use .begin()..
+    if(Can0.begin()) {
+        Serial.println("CAN bus started!");
+    } else {
+        Serial.println("CAN bus failed!");
+    }
+
+
+
+
+
+
+
+
+
+
+
     pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
 
