@@ -98,13 +98,7 @@ void setup() {
     digitalWrite(LED_BUILTIN, LOW);
 
     // Initalization for using CAN with the sparkmax
-    Can0.begin();
-    Can0.setBaudRate(1000000);
-    Can0.setMaxMB(16);
-    Can0.enableFIFO();
-    Can0.enableFIFOInterrupt();
-
-
+  
     Can0.setPins(CAN_TX, CAN_RX);
 	
     // You can set custom size for the queues - those are default
