@@ -5,14 +5,11 @@
 #include <cmath>
 #include <cstdlib>
 #include <vector>
-#include <utility/imumaths.h>
-#include <FastLED.h>
 // Our own resources
 #include "project/CORE.h"
 #include "AstraMisc.h"
 #include "AstraMotors.h"
 #include "AstraCAN2.h"
-#include "TeensyThreads.h"
 
 using namespace std;
 
