@@ -13,7 +13,6 @@
 #include "AstraMotors.h"
 #include "AstraCAN2.h"
 #include "AstraSensors.h"
-#include "TeensyThreads.h"
 
 using namespace std;
 
