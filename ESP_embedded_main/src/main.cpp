@@ -58,6 +58,8 @@ String feedback;
 
 unsigned long clockTimer = millis();
 
+unsigned long lastFeedback;
+unsigned long lastCtrlCmd;
 
 void setup() 
 {
@@ -220,37 +222,6 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
 
 void loop() 
 {
-  
-  // Accelerate the motors
-  // Every 50 milliseconds, update the speed for all motors
-  safety_timeout();
-
-  if(millis()-lastAccel >= 50)
-  {
-
-    lastAccel = millis();
-    for(int i = 0; i < 4; i++)
-    {
-      motorList[i].UpdateForAcceleration();
-    }
-
-    if(motorList[0].getControlMode() == 1)//send the correct duty cycle to the motors
-    {
-
-      for(int i = 0; i < 4; i++)
-      {
-        sendDutyCycle(Can0, motorList[i].getID(), motorList[i].getDuty());
-      }
-        
-    }
-    else
-    {
-        //pass for RPM control mode
-    }
- 
-  }
-
-
 
   //----------------------------------//
   // Runs something at a set interval //
