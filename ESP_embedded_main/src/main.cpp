@@ -17,17 +17,17 @@
 using namespace std;
 
 
-#define NUM_LEDS 166
+//REMOVE_LED#define NUM_LEDS 166
 //strip 1: 1-40
 //strip 2: 41-82
 //strip 3: 83-124
 //strip 4: 125-166
 //CCW: 1,2,3,4
 
-int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
-int led_counter = 0;
+//REMOVE_LEDint led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+//REMOVE_LEDint led_counter = 0;
 
-CRGB leds[NUM_LEDS];
+//REMOVE_LEDCRGB leds[NUM_LEDS];
 
 
 #define BMP_CS 10
@@ -50,7 +50,7 @@ bool autoTurn(int time,float target_direction);
 String outputBno();
 String outputBmp();
 void outputGPS();
-void setLED(int r_val, int b_val, int g_val);
+//REMOVE_LEDvoid setLED(int r_val, int b_val, int g_val);
 void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
 void safety_timeout();
 
@@ -106,14 +106,14 @@ void setup()
     // pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
 
 
-    FastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
-    FastLED.setBrightness(255);
-    for(int i = 0; i < NUM_LEDS; ++i)
-    {
-      leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
-      FastLED.show();
-      delay(10);
-    }
+    //REMOVE_LEDFastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
+    //REMOVE_LEDFastLED.setBrightness(255);
+    //REMOVE_LEDfor(int i = 0; i < NUM_LEDS; ++i)
+    //REMOVE_LED{
+    //REMOVE_LED  leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
+    //REMOVE_LED  FastLED.show();
+    //REMOVE_LED  delay(10);
+    //REMOVE_LED}
 
 
 
@@ -422,10 +422,10 @@ void loop()
     {   
       for(int i = 0; i < 3; i++)
       {
-        led_rbg[i] = args[i+1].toInt();
+        //REMOVE_LEDled_rbg[i] = args[i+1].toInt();
       }
       
-      setLED(led_rbg[0], led_rbg[1], led_rbg[2]);
+      //REMOVE_LEDsetLED(led_rbg[0], led_rbg[1], led_rbg[2]);
 
     } 
 
@@ -581,12 +581,12 @@ int findRotationDirection(float current_direction, float target_direction)
 
 void setLED(int r_val, int b_val, int g_val)
 {
-    for(int i = 0; i < NUM_LEDS; ++i)
-    {
-      leds[i] = CRGB(r_val, b_val, g_val);
-      FastLED.show();
-      delay(10);
-    }
+    //REMOVE_LEDfor(int i = 0; i < NUM_LEDS; ++i)
+    //REMOVE_LED{
+    //REMOVE_LED  leds[i] = CRGB(r_val, b_val, g_val);
+    //REMOVE_LED  FastLED.show();
+    //REMOVE_LED  delay(10);
+    //REMOVE_LED}
 }
 
 
