@@ -26,16 +26,12 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 
 
 //Prototypes
-int findRotationDirection(float current_direction, float target_direction);
-bool autoTurn(int time,float target_direction);
 void turnCW();
 void turnCCW();
 void Stop();
 void goForwards(float speed);
 void goBackwards(float speed);
 void loopHeartbeats();
-void outputGPS();
-void setLED(int r_val, int b_val, int g_val);
 void parseInput(const String input, std::vector<String>& args, char delim); // parse command to args[]
 void safety_timeout();
 
@@ -75,7 +71,7 @@ void setup()
     Can0.enableFIFOInterrupt();
     */
 
-    Can0.setPins(CAN_TX, CAN_RX);
+    Can0.setPins(CAN_REV_TX, CAN_REV_RX);
 	
     // You can set custom size for the queues - those are default
     Can0.setRxQueueSize(5);
