@@ -57,6 +57,7 @@ void setup()
   
     pinMode(LED_BUILTIN, OUTPUT);
     Serial1.begin(SERIAL_BAUD);
+    Serial.begin(SERIAL_BAUD);
     digitalWrite(LED_BUILTIN, HIGH);
 
     delay(2000);
@@ -191,6 +192,7 @@ void loop()
 
     String command = Serial1.readStringUntil('\n');  // Command is equal to a line in the Serial1
     command.trim();
+    Serial.println(command);
     String prevCommand;
 
     std::vector<String> args = {};

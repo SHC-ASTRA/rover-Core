@@ -30,7 +30,7 @@ using namespace std;
 //REMOVE_LEDCRGB leds[NUM_LEDS];
 
 
-#define BMP_CS 10
+//#define BMP_CS 10
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 
@@ -326,17 +326,17 @@ void loop()
 
     if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
     {                          
-      Serial1.print(command);
+      Serial1.println(command);
     }
 
     else if (args[0] == "speedMultiplier") // Is looking for a command that looks like "ctrl,x" where 0<x<1
     {
-      Serial1.print(command);
+      Serial1.println(command);
     }
 
     else if (args[0] == "brake") 
     {
-      Serial1.print(command);
+      Serial1.println(command);
     }
 
     else if (args[0] == "auto") // Commands for autonomy
@@ -365,17 +365,17 @@ void loop()
 
         else if(args[1] == "forwards") // auto,forwards
         {  
-          Serial1.print(command);
+          Serial1.println(command);
         }
 
         else if(args[1] == "backwards") // auto,backwards
         { 
-          Serial1.print(command);
+          Serial1.println(command);
         }
 
         else if(args[1] == "stop") // auto,stop
         {  
-          Serial1.print(command);
+          Serial1.println(command);
         }
 
       }
@@ -540,22 +540,22 @@ bool autoTurn(int time, float target_direction)
 
       if(turningRight)
       {
-        Serial1.print("auto,TurnCW");
+        Serial1.println("auto,TurnCW");
       }else
       {
-        Serial1.print("auto,TurnCW");
+        Serial1.println("auto,TurnCW");
       }
 
     }
     else
     {
-      Serial1.print("auto,stop");
+      Serial1.println("auto,stop");
       return true;
     }
 
   }
 
-  Serial1.print("auto,stop");
+  Serial1.println("auto,stop");
   return false;
 }
 
