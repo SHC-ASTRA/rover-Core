@@ -63,7 +63,7 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
 
     // Initalization for using CAN with the sparkmax
-    /*
+    /* Old code for reference
     Can0.begin();
     Can0.setBaudRate(1000000);
     Can0.setMaxMB(16);
@@ -120,6 +120,7 @@ void loop()
 
   if(millis()-lastAccel >= 50)
   {
+
     lastAccel = millis();
     for(int i = 0; i < 4; i++)
     {
@@ -128,6 +129,7 @@ void loop()
 
     if(motorList[0].getControlMode() == 1) //send the correct duty cycle to the motors
     {
+
       for(int i = 0; i < 4; i++)
       {
         sendDutyCycle(Can0, motorList[i].getID(), motorList[i].getDuty());
@@ -186,6 +188,7 @@ void loop()
 
   if (Serial1.available()) 
   {
+
     String command = Serial1.readStringUntil('\n');  // Command is equal to a line in the Serial1
     command.trim();
     String prevCommand;
@@ -196,80 +199,96 @@ void loop()
     //
 
     if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
-    {                          
-        //Serial1.println("ctrl cmd received");
-        lastCtrlCmd = millis();
-        if(command != prevCommand)
-        {
-          //Serial1.println("NEW COMMAND RECEIVED");
+    {   
 
-          prevCommand = command;
+      //Serial1.println("ctrl cmd received");
+      lastCtrlCmd = millis();
+      if(command != prevCommand)
+      {
 
-          motorList[0].setDuty(args[1].toFloat());
-          motorList[1].setDuty(args[1].toFloat());
+        //Serial1.println("NEW COMMAND RECEIVED");
 
-          motorList[2].setDuty(args[2].toFloat());
-          motorList[3].setDuty(args[2].toFloat());
+        prevCommand = command;
 
-          
-        }
-        else
-        {
-          //pass if command if control command is same as previous
-        }
+        motorList[0].setDuty(args[1].toFloat());
+        motorList[1].setDuty(args[1].toFloat());
+
+        motorList[2].setDuty(args[2].toFloat());
+        motorList[3].setDuty(args[2].toFloat());
+
+        
+      }
+      else
+      {
+        //pass if command if control command is same as previous
+      }
+
     }
     else if (args[0] == "brake") 
     {
-        if(args[1] == "on") 
-        {
-            setParameter(Can0, 1, 6, 1);
-            setParameter(Can0, 2, 6, 1);
-            setParameter(Can0, 3, 6, 1);
-            setParameter(Can0, 4, 6, 1);
-        } 
-        else if(args[1] == "off")
-        {
-            setParameter(Can0, 1, 6, 0);
-            setParameter(Can0, 2, 6, 0);
-            setParameter(Can0, 3, 6, 0);
-            setParameter(Can0, 4, 6, 0);
-        }
+
+      if(args[1] == "on") 
+      {
+          setParameter(Can0, 1, 6, 1);
+          setParameter(Can0, 2, 6, 1);
+          setParameter(Can0, 3, 6, 1);
+          setParameter(Can0, 4, 6, 1);
+      }
+
+      else if(args[1] == "off")
+      {
+          setParameter(Can0, 1, 6, 0);
+          setParameter(Can0, 2, 6, 0);
+          setParameter(Can0, 3, 6, 0);
+          setParameter(Can0, 4, 6, 0);
+      }
+
     }
     else if (args[0] == "auto") // Commands for autonomy
-    {  
-        lastCtrlCmd = millis();
-        if(command != prevCommand)
-        {
-          if(args[1] == "forwards") // auto,forwards
-          {  
-            goForwards(args[2].toFloat());
-          }
-          else if(args[1] == "backwards") // auto,backwards
-          { 
-            goBackwards(args[2].toFloat());
-          }
-          else if(args[1] == "TurnCW") // auto,backwards
-          { 
-            turnCW();
-          }
-          else if(args[1] == "TurnCCW") // auto,backwards
-          { 
-            turnCCW();
-          }
-          else if(args[1] == "stop") // auto,stop
-          {  
-            Stop();
-          }
+    { 
+
+      lastCtrlCmd = millis();
+      if(command != prevCommand)
+      {
+
+        if(args[1] == "forwards") // auto,forwards
+        {  
+          goForwards(args[2].toFloat());
         }
-        else
-        {
-          //pass if command if control command is same as previous
+
+        else if(args[1] == "backwards") // auto,backwards
+        { 
+          goBackwards(args[2].toFloat());
         }
+
+        else if(args[1] == "TurnCW") // auto,backwards
+        { 
+          turnCW();
+        }
+
+        else if(args[1] == "TurnCCW") // auto,backwards
+        { 
+          turnCCW();
+        }
+
+        else if(args[1] == "stop") // auto,stop
+        {  
+          Stop();
+        }
+
+      }
+      else
+      {
+        //pass if command if control command is same as previous
+      }
+
     }
+
     else if (args[0] == "ping") 
     {
       Serial1.println("pong");
     } 
+
     else if (args[0] == "time") 
     {
       Serial1.println(millis());
@@ -293,12 +312,15 @@ void loop()
 
 void safety_timeout()
 {
+
   if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
   {
+
     lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
     Stop();
     Serial1.println("No Control / Safety Timeout");
   }
+
 }
 
 // Bypasses the acceleration to make the rover turn clockwise
@@ -362,7 +384,8 @@ void goBackwards(float speed)
 // Parse `input` into `args` separated by `delim`
 // Ex: "ctrl,led,on" => {ctrl,led,on}
 // Equivalent to Python's `.split()`
-void parseInput(const String input, std::vector<String>& args, char delim) {
+void parseInput(const String input, std::vector<String>& args, char delim) 
+  {
     //Modified from https://forum.arduino.cc/t/how-to-split-a-string-with-space-and-store-the-items-in-array/888813/9
 
     // Index of previously found delim
@@ -380,17 +403,21 @@ void parseInput(const String input, std::vector<String>& args, char delim) {
         lastIndex = index;
         // using lastIndex+1 instead of input = input.substring to reduce memory impact
         index = input.indexOf(delim, lastIndex+1);
-        if (index == -1) { // No instance of delim found in input
+        if (index == -1) // No instance of delim found in input
+        {
             // If no delims are found at all, then lastIndex+1 == 0, so whole string is passed.
             // Otherwise, only the last part of input is passed because of lastIndex+1.
             args.push_back(input.substring(lastIndex+1));
             // Exit the loop when there are no more delims
             break;
-        } else { // delim found
+        } 
+        else // delim found
+        {
             // If this is the first delim, lastIndex+1 == 0, so starts from beginning
             // Otherwise, starts from last found delim with lastIndex+1
             args.push_back(input.substring(lastIndex+1, index));
         }
+
     }
 
     // output is via vector<String>& args
