@@ -16,11 +16,11 @@ using namespace std;
 //Setting up for CAN0 line
 AstraFCAN Can0;
 
-//AstraMotors(int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
-AstraMotors Motor1(2, 1, false, 50, 1.00F);//Front Left
-AstraMotors Motor2(4, 1, false, 50, 1.00F);//Back Left
-AstraMotors Motor3(1, 1, true, 50, 1.00F);//Front Right
-AstraMotors Motor4(3, 1, true, 50, 1.00F);//Back Right
+//AstraMotors(AstraFCAN setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
+AstraMotors Motor1(Can0, 2, 1, false, 50, 1.00F);  // Front Left
+AstraMotors Motor2(Can0, 4, 1, false, 50, 1.00F);  // Back Left
+AstraMotors Motor3(Can0, 1, 1, true, 50, 1.00F);  // Front Right
+AstraMotors Motor4(Can0, 3, 1, true, 50, 1.00F);  // Back Right
 
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
