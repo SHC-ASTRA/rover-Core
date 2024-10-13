@@ -9,7 +9,7 @@
 #include "project/CORE.h"
 #include "AstraMisc.h"
 #include "AstraMotors.h"
-#include "AstraCAN2.h"
+#include "AstraCAN.h"
 
 using namespace std;
 
