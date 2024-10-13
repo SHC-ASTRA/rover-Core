@@ -132,7 +132,7 @@ void loop()
 
       for(int i = 0; i < 4; i++)
       {
-        sendDutyCycle(Can0, motorList[i].getID(), motorList[i].getDuty());
+        motorList[i].sendDuty();
       }
         
     }
@@ -230,18 +230,12 @@ void loop()
 
       if(args[1] == "on") 
       {
-          setParameter(Can0, 1, 6, 1);
-          setParameter(Can0, 2, 6, 1);
-          setParameter(Can0, 3, 6, 1);
-          setParameter(Can0, 4, 6, 1);
+          Brake(true);
       }
 
       else if(args[1] == "off")
       {
-          setParameter(Can0, 1, 6, 0);
-          setParameter(Can0, 2, 6, 0);
-          setParameter(Can0, 3, 6, 0);
-          setParameter(Can0, 4, 6, 0);
+          Brake(false);
       }
 
     }
@@ -328,35 +322,34 @@ void safety_timeout()
 // Should only be used for autonomy
 void turnCW()
 {
-  sendDutyCycle(Can0, 2, 0.6);
-  sendDutyCycle(Can0, 4, 0.6);
-  sendDutyCycle(Can0, 1, 0.6);
-  sendDutyCycle(Can0, 3, 0.6);
+  for (int i = 0; i < 4; i++) {
+    motorList[i].sendDuty(0.6);
+  }
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
 // Should only be used for autonomy
 void turnCCW()
 {
-  sendDutyCycle(Can0, 2, -0.6);
-  sendDutyCycle(Can0, 4, -0.6);
-  sendDutyCycle(Can0, 1, -0.6);
-  sendDutyCycle(Can0, 3, -0.6);
+  for (int i = 0; i < 4; i++) {
+    motorList[i].sendDuty(-0.6);
+  }
 }
 
 // Bypasses the acceleration to make the rover stop
 // Should only be used for autonomy, but it could probably be used elsewhere
 void Stop()
 {
-  sendDutyCycle(Can0, motorList[0].getID(), 0);
-  sendDutyCycle(Can0, motorList[1].getID(), 0);
-  sendDutyCycle(Can0, motorList[2].getID(), 0);
-  sendDutyCycle(Can0, motorList[3].getID(), 0);
+  for (int i = 0; i < 4; i++) {
+    motorList[i].sendDuty(0.0);
+  }
+}
 
-  motorList[0].setDuty(0.0);
-  motorList[1].setDuty(0.0);
-  motorList[2].setDuty(0.0);
-  motorList[3].setDuty(0.0);
+// Enables or disables brake mode for all motors
+void Brake(bool enable) {
+  for (int i = 0; i < 4; i++) {
+    motorList[i].setBrake(enable);
+  }
 }
 
 // Tells the rover to go forwards
