@@ -25,6 +25,9 @@ AstraMotors Motor4(&Can0, 3, 1, true, 50, 1.00F);  // Back Right
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
 
+#define COMMS_UART Serial  // Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
+
+
 //Prototypes
 void turnCW();
 void turnCCW();
@@ -85,11 +88,11 @@ void setup()
     // You can also just use .begin()..
     if(Can0.begin()) 
     {
-        Serial1.println("CAN bus started!");
+        COMMS_UART.println("CAN bus started!");
     } 
     else 
     {
-        Serial1.println("CAN bus failed!");
+        COMMS_UART.println("CAN bus failed!");
     }
 
 }
@@ -195,12 +198,13 @@ void loop()
   // For examples of parsing data you can use the link below
   // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
 
-  if (Serial1.available()) 
+  if (COMMS_UART.available()) 
   {
 
-    String command = Serial1.readStringUntil('\n');  // Command is equal to a line in the Serial1
+    String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
     command.trim();
-    Serial.println(command);
+    if(COMMS_UART == Serial1)
+      Serial.println(command);
     String prevCommand;
 
     std::vector<String> args = {};
@@ -290,12 +294,12 @@ void loop()
 
     else if (args[0] == "ping") 
     {
-      Serial1.println("pong");
+      COMMS_UART.println("pong");
     } 
 
     else if (args[0] == "time") 
     {
-      Serial1.println(millis());
+      COMMS_UART.println(millis());
     }
 
   }
@@ -322,7 +326,7 @@ void safety_timeout()
 
     lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
     Stop();
-    Serial1.println("No Control / Safety Timeout");
+    COMMS_UART.println("No Control / Safety Timeout");
   }
 
 }
