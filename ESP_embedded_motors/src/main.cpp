@@ -29,6 +29,7 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 void turnCW();
 void turnCCW();
 void Stop();
+void Brake(bool enable);
 void goForwards(float speed);
 void goBackwards(float speed);
 void loopHeartbeats();
@@ -160,6 +161,14 @@ void loop()
   {
     heartBeatNum = 1;
   }
+
+  if((millis()-clockTimer)>=1000)
+  {
+    identifyDevice(Can0, 1);
+    clockTimer = millis();
+  }
+
+
 
 
   //------------------//

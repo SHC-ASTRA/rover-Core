@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "xstring": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/charl/Documents/GitHub/rover-Core/core_ws/src/health_pkg"
 }
