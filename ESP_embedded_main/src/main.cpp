@@ -15,7 +15,7 @@
 #endif
 #include "AstraMisc.h"
 #include "AstraMotors.h"
-#include "AstraCAN2.h"
+#include "AstraCAN.h"
 #include "AstraSensors.h"
 
 using namespace std;
