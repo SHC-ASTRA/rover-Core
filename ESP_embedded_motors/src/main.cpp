@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <vector>
 // Our own resources
-#include "project/CORE.h"
+#include "project/TESTBED.h"
 #include "AstraMisc.h"
 #include "AstraMotors.h"
 #include "AstraCAN.h"
@@ -80,12 +80,12 @@ void setup()
     Can0.setPins(CAN_TX, CAN_RX);
 	
     // You can set custom size for the queues - those are default
-    Can0.setRxQueueSize(5);
-	  Can0.setTxQueueSize(5);
+    // Can0.setRxQueueSize(5);
+	  // Can0.setTxQueueSize(5);
 
     // .setSpeed() and .begin() functions require to use TwaiSpeed enum,
     // but you can easily convert it from numerical value using .convertSpeed()
-    Can0.setSpeed(Can0.convertSpeed(500));
+    // Can0.setSpeed(Can0.convertSpeed(500));
 
     // You can also just use .begin()..
     if(Can0.begin()) 
@@ -132,7 +132,7 @@ void loop()
   
   // Accelerate the motors
   // Every 50 milliseconds, update the speed for all motors
-  safety_timeout();
+  //safety_timeout();
 
   if(millis()-lastAccel >= 50)
   {
@@ -177,11 +177,11 @@ void loop()
     heartBeatNum = 1;
   }
 
-  if((millis()-clockTimer)>=1000)
+  /*if((millis()-clockTimer)>=1000)
   {
     identifyDevice(Can0, 1);
     clockTimer = millis();
-  }
+  }*/
 
 
 
