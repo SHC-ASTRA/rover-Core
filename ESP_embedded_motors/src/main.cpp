@@ -49,6 +49,8 @@ String feedback;
 
 unsigned long clockTimer = millis();
 unsigned long heartBeatNum = 1;
+uint32_t lastBlink = 0;
+bool ledState = false;
 
 
 void setup() 
@@ -117,6 +119,16 @@ void setup()
 
 void loop() 
 {
+
+  if (millis() - lastBlink >= 1000) 
+  {
+    lastBlink = millis();
+    ledState = !ledState;
+    if (ledState)
+      digitalWrite(LED_BUILTIN, HIGH);
+    else
+      digitalWrite(LED_BUILTIN, LOW);
+  }
   
   // Accelerate the motors
   // Every 50 milliseconds, update the speed for all motors
