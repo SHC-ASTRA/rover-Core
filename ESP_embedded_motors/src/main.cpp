@@ -71,7 +71,7 @@ void setup()
     Can0.enableFIFOInterrupt();
     */
 
-    Can0.setPins(CAN_REV_TX, CAN_REV_RX);
+    Can0.setPins(CAN_TX, CAN_RX);
 	
     // You can set custom size for the queues - those are default
     Can0.setRxQueueSize(5);
