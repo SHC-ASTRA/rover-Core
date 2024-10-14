@@ -8,7 +8,11 @@
 #include <utility/imumaths.h>
 #include <FastLED.h>
 // Our own resources
-#include "project/TESTBED.h"
+#if defined(TESTBED)
+#   include "project/TESTBED.h"
+#else
+#   include "project/CORE.h"
+#endif
 #include "AstraMisc.h"
 #include "AstraMotors.h"
 #include "AstraCAN2.h"

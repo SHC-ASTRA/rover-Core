@@ -6,7 +6,11 @@
 #include <cstdlib>
 #include <vector>
 // Our own resources
-#include "project/TESTBED.h"
+#if defined(TESTBED)
+#   include "project/TESTBED.h"
+#else
+#   include "project/CORE.h"
+#endif
 #include "AstraMisc.h"
 #include "AstraMotors.h"
 #include "AstraCAN.h"
