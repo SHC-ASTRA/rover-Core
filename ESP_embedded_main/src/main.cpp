@@ -34,8 +34,6 @@ using namespace std;
 //REMOVE_LEDCRGB leds[NUM_LEDS];
 
 
-//#define BMP_CS 10
-
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 Adafruit_BMP3XX bmp;
@@ -67,9 +65,9 @@ unsigned long lastCtrlCmd;
 void setup() 
 {
 
-  //-----------------//
-  // Initialize Pins //
-  //-----------------//
+    //-----------------//
+    // Initialize Pins //
+    //-----------------//
   
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(SERIAL_BAUD);
@@ -79,24 +77,9 @@ void setup()
     delay(2000);
     digitalWrite(LED_BUILTIN, LOW);
 
-    /* Initalization for using CAN with the sparkmax
-     * Not sure if this will use CAN, pin sheet 
-     * says it does, so I'm going to keep the CAN code
-     */
-
-    Can0.setPins(CAN_TX, CAN_RX);
-	
-    // You can set custom size for the queues - those are default
-    Can0.setRxQueueSize(5);
-	  Can0.setTxQueueSize(5);
-
-    /* .setSpeed() and .begin() functions require to use TwaiSpeed enum,
-     * but you can easily convert it from numerical value using .convertSpeed()
-     */
-    Can0.setSpeed(Can0.convertSpeed(500));
-
+    
     // You can also just use .begin()..
-    if(Can0.begin()) 
+    if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
     {
         Serial.println("CAN bus started!");
     } 
@@ -121,86 +104,86 @@ void setup()
 
 
 
-  //--------------------//
-  // Initialize Sensors //
-  //--------------------//
+    //--------------------//
+    // Initialize Sensors //
+    //--------------------//
     if(!bno.begin()) 
     {
-      Serial.println("!BNO failed to start...");
+        Serial.println("!BNO failed to start...");
     } 
     else 
     {
-      Serial.println("BNO055 Started Successfully");
+        Serial.println("BNO055 Started Successfully");
     }
 
     if(!bmp.begin_I2C()) 
     {
-      Serial.println("bmp not working");
+        Serial.println("bmp not working");
     } 
     else 
     {
-      Serial.println("bmp is working");
+        Serial.println("bmp is working");
     }
 
     if(!myGNSS.begin()) 
     {
-      Serial.println("GPS not working");
+        Serial.println("GPS not working");
     }
     else 
     {
-      Serial.println("GPS is working");
+        Serial.println("GPS is working");
     }
 
-  initializeBMP(bmp);
+    initializeBMP(bmp);
 
 
 
-// Setup for GPS
-myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
+    // Setup for GPS
+    myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
 
-  // Create storage for the time pulse parameters
-  UBX_CFG_TP5_data_t timePulseParameters;
+    // Create storage for the time pulse parameters
+    UBX_CFG_TP5_data_t timePulseParameters;
 
-  // Get the time pulse parameters
-  if (myGNSS.getTimePulseParameters(&timePulseParameters) == false)
-  {
-    Serial.println(F("getTimePulseParameters failed! not Freezing..."));
-  }
+    // Get the time pulse parameters
+    if (myGNSS.getTimePulseParameters(&timePulseParameters) == false)
+    {
+        Serial.println(F("getTimePulseParameters failed! not Freezing..."));
+    }
 
-  // Print the CFG TP5 version
-  Serial.print(F("UBX_CFG_TP5 version: "));
-  Serial.println(timePulseParameters.version);
+    // Print the CFG TP5 version
+    Serial.print(F("UBX_CFG_TP5 version: "));
+    Serial.println(timePulseParameters.version);
 
-  timePulseParameters.tpIdx = 0; // Select the TIMEPULSE pin
-  //timePulseParameters.tpIdx = 1; // Or we could select the TIMEPULSE2 pin instead, if the module has one
+    timePulseParameters.tpIdx = 0; // Select the TIMEPULSE pin
+    //timePulseParameters.tpIdx = 1; // Or we could select the TIMEPULSE2 pin instead, if the module has one
 
-  // We can configure the time pulse pin to produce a defined frequency or period
-  // Here is how to set the frequency:
+    // We can configure the time pulse pin to produce a defined frequency or period
+    // Here is how to set the frequency:
 
-  // While the module is _locking_ to GNSS time, make it generate 2kHz
-  timePulseParameters.freqPeriod = 2000; // Set the frequency/period to 2000Hz
-  timePulseParameters.pulseLenRatio = 0x55555555; // Set the pulse ratio to 1/3 * 2^32 to produce 33:67 mark:space
+    // While the module is _locking_ to GNSS time, make it generate 2kHz
+    timePulseParameters.freqPeriod = 2000; // Set the frequency/period to 2000Hz
+    timePulseParameters.pulseLenRatio = 0x55555555; // Set the pulse ratio to 1/3 * 2^32 to produce 33:67 mark:space
 
-  // When the module is _locked_ to GNSS time, make it generate 1kHz
-  timePulseParameters.freqPeriodLock = 1000; // Set the frequency/period to 1000Hz
-  timePulseParameters.pulseLenRatioLock = 0x80000000; // Set the pulse ratio to 1/2 * 2^32 to produce 50:50 mark:space
+    // When the module is _locked_ to GNSS time, make it generate 1kHz
+    timePulseParameters.freqPeriodLock = 1000; // Set the frequency/period to 1000Hz
+    timePulseParameters.pulseLenRatioLock = 0x80000000; // Set the pulse ratio to 1/2 * 2^32 to produce 50:50 mark:space
 
-  timePulseParameters.flags.bits.active = 1; // Make sure the active flag is set to enable the time pulse. (Set to 0 to disable.)
-  timePulseParameters.flags.bits.lockedOtherSet = 1; // Tell the module to use freqPeriod while locking and freqPeriodLock when locked to GNSS time
-  timePulseParameters.flags.bits.isFreq = 1; // Tell the module that we want to set the frequency (not the period)
-  timePulseParameters.flags.bits.isLength = 0; // Tell the module that pulseLenRatio is a ratio / duty cycle (* 2^-32) - not a length (in us)
-  timePulseParameters.flags.bits.polarity = 1; // Tell the module that we want the rising edge at the top of second. (Set to 0 for falling edge.)
+    timePulseParameters.flags.bits.active = 1; // Make sure the active flag is set to enable the time pulse. (Set to 0 to disable.)
+    timePulseParameters.flags.bits.lockedOtherSet = 1; // Tell the module to use freqPeriod while locking and freqPeriodLock when locked to GNSS time
+    timePulseParameters.flags.bits.isFreq = 1; // Tell the module that we want to set the frequency (not the period)
+    timePulseParameters.flags.bits.isLength = 0; // Tell the module that pulseLenRatio is a ratio / duty cycle (* 2^-32) - not a length (in us)
+    timePulseParameters.flags.bits.polarity = 1; // Tell the module that we want the rising edge at the top of second. (Set to 0 for falling edge.)
 
-  // Now set the time pulse parameters
-  if (myGNSS.setTimePulseParameters(&timePulseParameters) == false)
-  {
-    Serial.println(F("setTimePulseParameters failed!"));
-  }
-  else
-  {
-    Serial.println(F("Success!"));
-  }
-  
+    // Now set the time pulse parameters
+    if (myGNSS.setTimePulseParameters(&timePulseParameters) == false)
+    {
+        Serial.println(F("setTimePulseParameters failed!"));
+    }
+    else
+    {
+        Serial.println(F("Success!"));
+    }
+
 }
 
 
@@ -226,228 +209,227 @@ myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn o
 void loop() 
 {
 
-  //----------------------------------//
-  // Runs something at a set interval //
-  // Useful for testing               //
-  //----------------------------------//
+    //----------------------------------//
+    // Runs something at a set interval //
+    // Useful for testing               //
+    //----------------------------------//
 
-  if((millis()-lastFeedback)>=2000)
-  {
+    if((millis()-lastFeedback)>=2000)
+    {
 
-    sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
-    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-    bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
-    bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
-    bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-    bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
-    bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
+        sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
+        bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+        bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
+        bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
+        bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+        bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+        bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
 
-    
-    //feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
-    double gpsData[3];
-    float bnoData2[7];
+        
+        //feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
+        double gpsData[3];
+        float bnoData2[7];
 
-    getPosition(myGNSS, gpsData);
-    pullBNOData(bno, bnoData2);
+        getPosition(myGNSS, gpsData);
+        pullBNOData(bno, bnoData2);
 
-    Serial.print("core,telemetry,");
-    Serial.print(gpsData[0],7);
-    Serial.print(",");
-    Serial.print(gpsData[1],7);
-    Serial.print(",");
-    Serial.print((int)gpsData[2]);
-    Serial.print(",");
-    Serial.print(angVelocityData.gyro.x);
-    Serial.print(",");
-    Serial.print(angVelocityData.gyro.y);
-    Serial.print(",");
-    Serial.print(angVelocityData.gyro.z);
-    Serial.print(",");
-    Serial.print(accelerometerData.acceleration.x);
-    Serial.print(",");
-    Serial.print(accelerometerData.acceleration.y);
-    Serial.print(",");
-    Serial.print(accelerometerData.acceleration.z);
-    Serial.print(",");
-    Serial.print(orientationData.orientation.x);
-    Serial.print(",");
-    Serial.print(bmp.temperature);
-    Serial.print(",");
-    Serial.print(bmp.pressure);
-    Serial.print(",");
-    Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
-    Serial.println();
-    
+        Serial.print("core,telemetry,");
+        Serial.print(gpsData[0],7);
+        Serial.print(",");
+        Serial.print(gpsData[1],7);
+        Serial.print(",");
+        Serial.print((int)gpsData[2]);
+        Serial.print(",");
+        Serial.print(angVelocityData.gyro.x);
+        Serial.print(",");
+        Serial.print(angVelocityData.gyro.y);
+        Serial.print(",");
+        Serial.print(angVelocityData.gyro.z);
+        Serial.print(",");
+        Serial.print(accelerometerData.acceleration.x);
+        Serial.print(",");
+        Serial.print(accelerometerData.acceleration.y);
+        Serial.print(",");
+        Serial.print(accelerometerData.acceleration.z);
+        Serial.print(",");
+        Serial.print(orientationData.orientation.x);
+        Serial.print(",");
+        Serial.print(bmp.temperature);
+        Serial.print(",");
+        Serial.print(bmp.pressure);
+        Serial.print(",");
+        Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
+        Serial.println();
+        
 
-    //Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", , , , , , , , , , , );
-    //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
-    //Serial.println(feedback);
-    
-    lastFeedback = millis();
+        //Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", , , , , , , , , , , );
+        //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
+        //Serial.println(feedback);
+        
+        lastFeedback = millis();
 
-  }
+    }
 
 
-  //------------------//
-  // Command Receiving //
-  //------------------//
-  //
-  //-------------------------------------------------------//
-  //                                                       //
-  //      /////////    //\\        ////    //////////      //
-  //    //             //  \\    //  //    //        //    //
-  //    //             //    \\//    //    //        //    //
-  //    //             //            //    //        //    //
-  //    //             //            //    //        //    //
-  //    //             //            //    //        //    //
-  //      /////////    //            //    //////////      //
-  //                                                       //
-  //-------------------------------------------------------//
-  //
-  // The giant CMD helps with finding this place
-  //
-  // Commands will be received as a comma separated value string
-  // Ex: "ctrl,1,1,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
-  // The program parses the string so that each piece of data can be used individually
-  // For examples of parsing data you can use the link below
-  // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-
-  if (Serial.available()) 
-  {
-
-    String command = Serial.readStringUntil('\n');  // Command is equal to a line in the serial
-    command.trim();                                 // I don't know why this is here, but it is important
-
-    String prevCommand;
-
+    //------------------//
+    // Command Receiving //
+    //------------------//
     //
-
-    std::vector<String> args = {};
-    parseInput(command, args, ',');
-
+    //-------------------------------------------------------//
+    //                                                       //
+    //      /////////    //\\        ////    //////////      //
+    //    //             //  \\    //  //    //        //    //
+    //    //             //    \\//    //    //        //    //
+    //    //             //            //    //        //    //
+    //    //             //            //    //        //    //
+    //    //             //            //    //        //    //
+    //      /////////    //            //    //////////      //
+    //                                                       //
+    //-------------------------------------------------------//
     //
+    // The giant CMD helps with finding this place
+    //
+    // Commands will be received as a comma separated value string
+    // Ex: "ctrl,1,1,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
+    // The program parses the string so that each piece of data can be used individually
+    // For examples of parsing data you can use the link below
+    // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
 
-    if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
-    {                          
-      Serial1.println(command);
-    }
-
-    else if (args[0] == "speedMultiplier") // Is looking for a command that looks like "ctrl,x" where 0<x<1
-    {
-      Serial1.println(command);
-    }
-
-    else if (args[0] == "brake") 
-    {
-      Serial1.println(command);
-    }
-
-    else if (args[0] == "auto") // Commands for autonomy
+    if (Serial.available()) 
     {
 
-      lastCtrlCmd = millis();
-      if(command != prevCommand)
-      {
+        String command = Serial.readStringUntil('\n');
+        command.trim();
 
-        if(args[1] == "turningTo") // auto,turningTo
+        String prevCommand;
+
+        std::vector<String> args = {};
+        parseInput(command, args, ',');
+
+        if (args[0] == "ping") 
+        {
+            Serial.println("pong");
+        } 
+
+        else if (args[0] == "time") 
+        {
+            Serial.println(millis());
+        }
+
+        else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        {                          
+            Serial1.println(command);
+        }
+
+        else if (args[0] == "speedMultiplier") // Is looking for a command that looks like "ctrl,x" where 0<x<1
+        {
+            Serial1.println(command);
+        }
+
+        else if (args[0] == "brake") 
+        {
+            Serial1.println(command);
+        }
+
+        else if (args[0] == "auto") // Commands for autonomy
         {
 
-          bool success = false;
+            lastCtrlCmd = millis();
+            if(command != prevCommand)
+            {
 
-          success = autoTurn(args[2].toFloat(),args[3].toFloat());
-          if(success)
-          {
-            Serial.println("turningTo,success");
-          }
-          else
-          {
-            Serial.println("turningTo,fail");
-          }
+                if(args[1] == "turningTo") // auto,turningTo
+                {
+
+                    bool success = false;
+
+                    success = autoTurn(args[2].toFloat(),args[3].toFloat());
+                    if(success)
+                    {
+                        Serial.println("turningTo,success");
+                    }
+                    else
+                    {
+                        Serial.println("turningTo,fail");
+                    }
+
+                }
+
+                else if(args[1] == "forwards") // auto,forwards
+                {  
+                    Serial1.println(command);
+                }
+
+                else if(args[1] == "backwards") // auto,backwards
+                { 
+                    Serial1.println(command);
+                }
+
+                else if(args[1] == "stop") // auto,stop
+                {  
+                    Serial1.println(command);
+                }
+
+            }
+            else
+            {
+                //pass if command if control command is same as previous
+            }
 
         }
 
-        else if(args[1] == "forwards") // auto,forwards
-        {  
-          Serial1.println(command);
-        }
+        else if (args[0] == "data") // Send data out
+        {
 
-        else if(args[1] == "backwards") // auto,backwards
-        { 
-          Serial1.println(command);
-        }
+            if(args[1] == "sendGPS") // data,sendGPS
+            {
+                outputGPS();
+            }
 
-        else if(args[1] == "stop") // auto,stop
-        {  
-          Serial1.println(command);
-        }
+            else if(args[1] == "sendIMU") // data,sendIMU
+            {
+                Serial.println(outputBno());
+            }
 
-      }
-      else
-      {
-        //pass if command if control command is same as previous
-      }
+            else if(args[1] == "sendBMP") // data,sendBMP
+            {
+                Serial.println(outputBmp());
+            }
+
+            else if(args[1] == "everything") // data,everything
+            { 
+                //Serial.println(outputGPS());
+                Serial.println(outputBno());
+                Serial.println(outputBmp());
+            }
+            
+            else if(args[1] == "getOrientation") // data,getOrientation
+            { 
+                Serial.printf("orientation,%f\n", getBNOOrient(bno));
+            }
+            
+        } 
+
+        else if (args[0] == "led_set") //set LED strip color format: led_set,r,b,g
+        {   
+            for(int i = 0; i < 3; i++)
+            {
+                //REMOVE_LEDled_rbg[i] = args[i+1].toInt();
+            }
+            
+            //REMOVE_LEDsetLED(led_rbg[0], led_rbg[1], led_rbg[2]);
+
+        } 
 
     }
 
-    else if (args[0] == "data") // Send data out
-    {
-
-      if(args[1] == "sendGPS") // data,sendGPS
-      {
-        outputGPS();
-      }
-
-      else if(args[1] == "sendIMU") // data,sendIMU
-      {
-        Serial.println(outputBno());
-      }
-
-      else if(args[1] == "sendBMP") // data,sendBMP
-      {
-        Serial.println(outputBmp());
-      }
-
-      else if(args[1] == "everything") // data,everything
-      { 
-        //Serial.println(outputGPS());
-        Serial.println(outputBno());
-        Serial.println(outputBmp());
-      }
-      
-      else if(args[1] == "getOrientation") // data,getOrientation
-      { 
-        Serial.printf("orientation,%f\n", getBNOOrient(bno));
-      }
-        
-    } 
-
-    else if (args[0] == "led_set") //set LED strip color format: led_set,r,b,g
-    {   
-      for(int i = 0; i < 3; i++)
-      {
-        //REMOVE_LEDled_rbg[i] = args[i+1].toInt();
-      }
-      
-      //REMOVE_LEDsetLED(led_rbg[0], led_rbg[1], led_rbg[2]);
-
-    } 
-
-    else if (args[0] == "ping") 
-    {
-      Serial.println("pong");
-    } 
-
-    else if (args[0] == "time") 
-    {
-      Serial.println(millis());
-    }
-
-
-  }
+    // // Relay data from the motor controller back over USB
+    // if (COMMS_UART.available())
+    // {
+    //     Serial.println(COMMS_UART.readStringUntil('\n').trim());
+    // }
 
 }
-
-
 
 
 //-------------------------------------------------------//
@@ -462,52 +444,42 @@ void loop()
 //                                                       //
 //-------------------------------------------------------//
 
-// void safety_timeout()
-//  {
-//   if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
-//   {
-//     lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
-//     Stop();
-//     Serial.println("No Control / Safety Timeout");
-//   }
-
-// }
 
 // Prints the output of the BNO in one line
 String outputBno()
 {
-  float bnoData2[7];
-  pullBNOData(bno,bnoData2);
-  String output;
-  //sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
-  
-  return output;
+    float bnoData2[7];
+    pullBNOData(bno,bnoData2);
+    String output;
+    //sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
+    
+    return output;
 }
 
 // Prints the output of the GPS in one line
 void outputGPS()
 {
-  String output = "null";
-  double gpsData[3];
-  getPosition(myGNSS, gpsData);
-  Serial.print("gps,");
-  Serial.print(gpsData[0],7);
-  Serial.print(",");
-  Serial.print(gpsData[1],7);
-  Serial.println();
-  
-  //return output;
+    String output = "null";
+    double gpsData[3];
+    getPosition(myGNSS, gpsData);
+    Serial.print("gps,");
+    Serial.print(gpsData[0],7);
+    Serial.print(",");
+    Serial.print(gpsData[1],7);
+    Serial.println();
+    
+    //return output;
 }
 
 // Prints the output of the BMP in one line
 String outputBmp()
 {
-  float bmpData[3];
-  pullBMPData(bmp, bmpData);
-  String output;
-  //sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
+    float bmpData[3];
+    pullBMPData(bmp, bmpData);
+    String output;
+    //sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
 
-  return output;
+    return output;
 }
 
 // Specify where the rover should turn
@@ -517,68 +489,69 @@ String outputBmp()
 bool autoTurn(int time, float target_direction)
 {
 
-  int startTime = millis(); 
-  unsigned long expectedTime;
-  expectedTime = time;
-  
-  float current_direction = getBNOOrient(bno);
-  bool turningRight = findRotationDirection(current_direction, target_direction);
+    int startTime = millis(); 
+    unsigned long expectedTime;
+    expectedTime = time;
+    
+    float current_direction = getBNOOrient(bno);
+    bool turningRight = findRotationDirection(current_direction, target_direction);
 
-  Serial.printf("StartTime: %d, Expected: %d",(int)startTime, (int)expectedTime);
+    Serial.printf("StartTime: %d, Expected: %d",(int)startTime, (int)expectedTime);
 
 
-  while(millis() - startTime < expectedTime)
-  {
-
-    current_direction = getBNOOrient(bno);
-    if(!((current_direction < target_direction + 2) && (current_direction > target_direction - 2)))
+    while (millis() - startTime < expectedTime)
     {
-      
-      turningRight = findRotationDirection(current_direction, target_direction);
 
-      Serial.print("Turning to: ");
-      Serial.println(target_direction);
-      Serial.print("Currently at: ");
-      Serial.println(getBNOOrient(bno));
+        current_direction = getBNOOrient(bno);
+        if (!((current_direction < target_direction + 2) && (current_direction > target_direction - 2)))
+        {
+        
+            turningRight = findRotationDirection(current_direction, target_direction);
 
-      if(turningRight)
-      {
-        Serial1.println("auto,TurnCW");
-      }else
-      {
-        Serial1.println("auto,TurnCW");
-      }
+            Serial.print("Turning to: ");
+            Serial.println(target_direction);
+            Serial.print("Currently at: ");
+            Serial.println(getBNOOrient(bno));
+
+            if (turningRight)
+            {
+                Serial1.println("auto,TurnCW");
+            }
+            else
+            {
+                Serial1.println("auto,TurnCW");
+            }
+
+        }
+        else
+        {
+            Serial1.println("auto,stop");
+            return true;
+        }
 
     }
-    else
-    {
-      Serial1.println("auto,stop");
-      return true;
-    }
 
-  }
-
-  Serial1.println("auto,stop");
-  return false;
+    Serial1.println("auto,stop");
+    return false;
 }
 
 
 // Finds out which direction the rover should turn
 int findRotationDirection(float current_direction, float target_direction)
 {
-  int cw_dist = target_direction - current_direction + 360;
-  cw_dist %= 360;
-  int ccw_dist = current_direction - target_direction + 360; 
-  ccw_dist %= 360;
+    int cw_dist = target_direction - current_direction + 360;
+    cw_dist %= 360;
+    int ccw_dist = current_direction - target_direction + 360; 
+    ccw_dist %= 360;
 
-  if(cw_dist <= ccw_dist)
-  {
-    return 1;//Rotate CW if distance is 180 or less
-  }
-  else
-  {
-    return 0;//Rotate CCW if distance is greater than 180
-  }
+    if (cw_dist <= ccw_dist)
+    {
+        return 1;//Rotate CW if distance is 180 or less
+    }
+    else
+    {
+        return 0;//Rotate CCW if distance is greater than 180
+    }
 
 } 
 
