@@ -81,7 +81,7 @@ void setup()
     Can0.enableFIFOInterrupt();
     */
 
-    Can0.setPins(CAN_TX, CAN_RX);
+    // Can0.setPins(CAN_TX, CAN_RX);
 	
     // You can set custom size for the queues - those are default
     // Can0.setRxQueueSize(5);
@@ -92,7 +92,7 @@ void setup()
     // Can0.setSpeed(Can0.convertSpeed(500));
 
     // You can also just use .begin()..
-    if(Can0.begin()) 
+    if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
     {
         COMMS_UART.println("CAN bus started!");
     } 
