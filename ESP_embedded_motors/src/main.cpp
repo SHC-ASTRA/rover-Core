@@ -28,11 +28,13 @@ AstraMotors Motor4(&Can0, 3, 1, true, 50, 1.00F);  // Back Right
 
 AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
 
-
-#define COMMS_UART Serial  // Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
+// Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
+// Purposefully override TESTBED.h for motor controller mcu for testing
+#define COMMS_UART Serial
 
 
 //Prototypes
+
 void turnCW();
 void turnCCW();
 void Stop();
@@ -59,10 +61,9 @@ bool ledState = false;
 
 void setup() 
 {
-
-  //-----------------//
-  // Initialize Pins //
-  //-----------------//
+    //-----------------//
+    // Initialize Pins //
+    //-----------------//
   
     pinMode(LED_BUILTIN, OUTPUT);
     Serial1.begin(SERIAL_BAUD);
@@ -85,7 +86,7 @@ void setup()
 	
     // You can set custom size for the queues - those are default
     // Can0.setRxQueueSize(5);
-	  // Can0.setTxQueueSize(5);
+	// Can0.setTxQueueSize(5);
 
     // .setSpeed() and .begin() functions require to use TwaiSpeed enum,
     // but you can easily convert it from numerical value using .convertSpeed()
@@ -123,202 +124,202 @@ void setup()
 
 void loop() 
 {
+    // Blink the LED
+    if (millis() - lastBlink >= 1000) 
+    {
+        lastBlink = millis();
+        ledState = !ledState;
+        if (ledState)
+            digitalWrite(LED_BUILTIN, HIGH);
+        else
+            digitalWrite(LED_BUILTIN, LOW);
+    }
 
-  if (millis() - lastBlink >= 1000) 
-  {
-    lastBlink = millis();
-    ledState = !ledState;
-    if (ledState)
-      digitalWrite(LED_BUILTIN, HIGH);
-    else
-      digitalWrite(LED_BUILTIN, LOW);
-  }
+    // Accelerate the motors
+    // Every 50 milliseconds, update the speed for all motors
+    //safety_timeout();
+
+    if(millis()-lastAccel >= 50)
+    {
+
+        lastAccel = millis();
+        for(int i = 0; i < 4; i++)
+        {
+            motorList[i].UpdateForAcceleration();
+        }
+
+        if(motorList[0].getControlMode() == 1) //send the correct duty cycle to the motors
+        {
+
+            for(int i = 0; i < 4; i++)
+            {
+                motorList[i].sendDuty();
+            }
+            
+        }
+        else
+        {
+            //pass for RPM control mode
+        }
   
-  // Accelerate the motors
-  // Every 50 milliseconds, update the speed for all motors
-  //safety_timeout();
-
-  if(millis()-lastAccel >= 50)
-  {
-
-    lastAccel = millis();
-    for(int i = 0; i < 4; i++)
-    {
-      motorList[i].UpdateForAcceleration();
     }
 
-    if(motorList[0].getControlMode() == 1) //send the correct duty cycle to the motors
+
+
+    //----------------------------------//
+    // send heartbeat                   //
+    //----------------------------------//
+
+    if((millis()-lastFeedback)>=3)
     {
-
-      for(int i = 0; i < 4; i++)
-      {
-        motorList[i].sendDuty();
-      }
-        
+        sendHeartbeat(Can0, heartBeatNum % 4);
+        lastFeedback = millis();
+        heartBeatNum++;
     }
-    else
+
+    if (heartBeatNum > 99999)
     {
-        //pass for RPM control mode
+        heartBeatNum = 1;
     }
- 
-  }
 
-
-
-  //----------------------------------//
-  // send heartbeat                   //
-  //----------------------------------//
-
-  if((millis()-lastFeedback)>=3)
-  {
-    sendHeartbeat(Can0, heartBeatNum % 4);
-    lastFeedback = millis();
-    heartBeatNum++;
-  }
-
-  if (heartBeatNum > 99999)
-  {
-    heartBeatNum = 1;
-  }
-
-  /*if((millis()-clockTimer)>=1000)
-  {
-    identifyDevice(Can0, 1);
-    clockTimer = millis();
-  }*/
+    /*if((millis()-clockTimer)>=1000)
+    {
+        identifyDevice(Can0, 1);
+        clockTimer = millis();
+    }*/
 
 
 
 
-  //------------------//
-  // Command Receiving //
-  //------------------//
-  //
-  //-------------------------------------------------------//
-  //                                                       //
-  //      /////////    //\\        ////    //////////      //
-  //    //             //  \\    //  //    //        //    //
-  //    //             //    \\//    //    //        //    //
-  //    //             //            //    //        //    //
-  //    //             //            //    //        //    //
-  //    //             //            //    //        //    //
-  //      /////////    //            //    //////////      //
-  //                                                       //
-  //-------------------------------------------------------//
-  //
-  // The giant CMD helps with finding this place
-  //
-  // Commands will be received as a comma separated value string
-  // Ex: "ctrl,1,1,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
-  // The program parses the string so that each piece of data can be used individually
-  // For examples of parsing data you can use the link below
-  // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-
-  if (COMMS_UART.available()) 
-  {
-
-    String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
-    command.trim();
-    if(COMMS_UART == Serial1)
-      Serial.println(command);
-    String prevCommand;
-
-    std::vector<String> args = {};
-    parseInput(command, args, ',');
-
+    //------------------//
+    // Command Receiving //
+    //------------------//
     //
+    //-------------------------------------------------------//
+    //                                                       //
+    //      /////////    //\\        ////    //////////      //
+    //    //             //  \\    //  //    //        //    //
+    //    //             //    \\//    //    //        //    //
+    //    //             //            //    //        //    //
+    //    //             //            //    //        //    //
+    //    //             //            //    //        //    //
+    //      /////////    //            //    //////////      //
+    //                                                       //
+    //-------------------------------------------------------//
+    //
+    // The giant CMD helps with finding this place
+    //
+    // Commands will be received as a comma separated value string
+    // Ex: "ctrl,1,1,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
+    // The program parses the string so that each piece of data can be used individually
+    // For examples of parsing data you can use the link below
+    // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
 
-    if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
-    {   
+    if (COMMS_UART.available()) 
+    {
 
-      //Serial1.println("ctrl cmd received");
-      lastCtrlCmd = millis();
-      if(command != prevCommand)
-      {
+        String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
+        command.trim();
+        if(COMMS_UART == Serial1)
+            Serial.println(command);
+        String prevCommand;
 
-        //Serial1.println("NEW COMMAND RECEIVED");
+        std::vector<String> args = {}; 
+        parseInput(command, args, ',');
 
-        prevCommand = command;
 
-        motorList[0].setDuty(args[1].toFloat());
-        motorList[1].setDuty(args[1].toFloat());
+        if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        {   
 
-        motorList[2].setDuty(args[2].toFloat());
-        motorList[3].setDuty(args[2].toFloat());
+            //Serial1.println("ctrl cmd received");
+            lastCtrlCmd = millis();
+            if(command != prevCommand)
+            {
+
+                //Serial1.println("NEW COMMAND RECEIVED");
+
+                prevCommand = command;
+
+                motorList[0].setDuty(args[1].toFloat());
+                motorList[1].setDuty(args[1].toFloat());
+
+                motorList[2].setDuty(args[2].toFloat());
+                motorList[3].setDuty(args[2].toFloat());
 
         
-      }
-      else
-      {
-        //pass if command if control command is same as previous
-      }
+            }
+            else
+            {
+                //pass if command if control command is same as previous
+            }
 
-    }
-    else if (args[0] == "brake") 
-    {
+        }
+        else if (args[0] == "brake") 
+        {
 
-      if(args[1] == "on") 
-      {
-          Brake(true);
-      }
+            if(args[1] == "on") 
+            {
+                Brake(true);
+            }
 
-      else if(args[1] == "off")
-      {
-          Brake(false);
-      }
+            else if(args[1] == "off")
+            {
+                Brake(false);
+            }
 
-    }
-    else if (args[0] == "auto") // Commands for autonomy
-    { 
-
-      lastCtrlCmd = millis();
-      if(command != prevCommand)
-      {
-
-        if(args[1] == "forwards") // auto,forwards
-        {  
-          goForwards(args[2].toFloat());
         }
 
-        else if(args[1] == "backwards") // auto,backwards
+        else if (args[0] == "auto") // Commands for autonomy
         { 
-          goBackwards(args[2].toFloat());
+
+            lastCtrlCmd = millis();
+            if(command != prevCommand)
+            {
+
+                if(args[1] == "forwards") // auto,forwards
+                {  
+                    goForwards(args[2].toFloat());
+                }
+
+                else if(args[1] == "backwards") // auto,backwards
+                { 
+                    goBackwards(args[2].toFloat());
+                }
+
+                else if(args[1] == "TurnCW") // auto,backwards
+                { 
+                    turnCW();
+                }
+
+                else if(args[1] == "TurnCCW") // auto,backwards
+                { 
+                    turnCCW();
+                }
+
+                else if(args[1] == "stop") // auto,stop
+                {  
+                    Stop();
+                }
+
+            }
+            else
+            {
+                //pass if command if control command is same as previous
+            }
+
         }
 
-        else if(args[1] == "TurnCW") // auto,backwards
-        { 
-          turnCW();
-        }
+        else if (args[0] == "ping") 
+        {
+            COMMS_UART.println("pong");
+        } 
 
-        else if(args[1] == "TurnCCW") // auto,backwards
-        { 
-          turnCCW();
+        else if (args[0] == "time") 
+        {
+            COMMS_UART.println(millis());
         }
-
-        else if(args[1] == "stop") // auto,stop
-        {  
-          Stop();
-        }
-
-      }
-      else
-      {
-        //pass if command if control command is same as previous
-      }
 
     }
-
-    else if (args[0] == "ping") 
-    {
-      COMMS_UART.println("pong");
-    } 
-
-    else if (args[0] == "time") 
-    {
-      COMMS_UART.println(millis());
-    }
-
-  }
 
 }
 
@@ -337,13 +338,13 @@ void loop()
 void safety_timeout()
 {
 
-  if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
-  {
+    if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
+    {
 
-    lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
-    Stop();
-    COMMS_UART.println("No Control / Safety Timeout");
-  }
+        lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
+        Stop();
+        COMMS_UART.println("No Control / Safety Timeout");
+    }
 
 }
 
@@ -351,34 +352,34 @@ void safety_timeout()
 // Should only be used for autonomy
 void turnCW()
 {
-  for (int i = 0; i < 4; i++) {
-    motorList[i].sendDuty(0.6);
-  }
+    for (int i = 0; i < 4; i++) {
+        motorList[i].sendDuty(0.6);
+    }
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
 // Should only be used for autonomy
 void turnCCW()
 {
-  for (int i = 0; i < 4; i++) {
-    motorList[i].sendDuty(-0.6);
-  }
+    for (int i = 0; i < 4; i++) {
+        motorList[i].sendDuty(-0.6);
+    }
 }
 
 // Bypasses the acceleration to make the rover stop
 // Should only be used for autonomy, but it could probably be used elsewhere
 void Stop()
 {
-  for (int i = 0; i < 4; i++) {
-    motorList[i].sendDuty(0.0);
-  }
+    for (int i = 0; i < 4; i++) {
+        motorList[i].sendDuty(0.0);
+    }
 }
 
 // Enables or disables brake mode for all motors
 void Brake(bool enable) {
-  for (int i = 0; i < 4; i++) {
-    motorList[i].setBrake(enable);
-  }
+    for (int i = 0; i < 4; i++) {
+        motorList[i].setBrake(enable);
+    }
 }
 
 // Tells the rover to go forwards
@@ -386,10 +387,10 @@ void Brake(bool enable) {
 // Autonomy
 void goForwards(float speed)
 {
-  motorList[0].setDuty(speed);
-  motorList[1].setDuty(speed);
-  motorList[2].setDuty(speed);
-  motorList[3].setDuty(speed);
+    motorList[0].setDuty(speed);
+    motorList[1].setDuty(speed);
+    motorList[2].setDuty(speed);
+    motorList[3].setDuty(speed);
 }
 
 // Tells the rover to go backwards
@@ -397,9 +398,9 @@ void goForwards(float speed)
 // Autonomy
 void goBackwards(float speed)
 {
-  float temp = (-1) * speed;
-  motorList[0].setDuty(temp);
-  motorList[1].setDuty(temp);
-  motorList[2].setDuty(temp);
-  motorList[3].setDuty(temp);
+    float temp = (-1) * speed;
+    motorList[0].setDuty(temp);
+    motorList[1].setDuty(temp);
+    motorList[2].setDuty(temp);
+    motorList[3].setDuty(temp);
 }
