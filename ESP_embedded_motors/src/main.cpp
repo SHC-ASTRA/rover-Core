@@ -145,21 +145,7 @@ void loop()
         lastAccel = millis();
         for(int i = 0; i < 4; i++)
         {
-            motorList[i].UpdateForAcceleration();
-        }
-
-        if(motorList[0].getControlMode() == 1) //send the correct duty cycle to the motors
-        {
-
-            for(int i = 0; i < 4; i++)
-            {
-                motorList[i].sendDuty();
-            }
-            
-        }
-        else
-        {
-            //pass for RPM control mode
+            motorList[i].accelerate();
         }
   
     }
