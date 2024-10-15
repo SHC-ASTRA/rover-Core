@@ -50,13 +50,11 @@ unsigned long lastDuty;
 unsigned long lastHB;
 unsigned long lastFeedback;
 unsigned long lastCtrlCmd;
-
-String feedback;
-
 unsigned long clockTimer = millis();
 unsigned long heartBeatNum = 1;
 uint32_t lastBlink = 0;
 bool ledState = false;
+String feedback;
 
 
 void setup() 
@@ -82,18 +80,8 @@ void setup()
     Can0.enableFIFOInterrupt();
     */
 
-    // Can0.setPins(CAN_TX, CAN_RX);
-	
-    // You can set custom size for the queues - those are default
-    // Can0.setRxQueueSize(5);
-	// Can0.setTxQueueSize(5);
-
-    // .setSpeed() and .begin() functions require to use TwaiSpeed enum,
-    // but you can easily convert it from numerical value using .convertSpeed()
-    // Can0.setSpeed(Can0.convertSpeed(500));
-
-    // You can also just use .begin()..
-    if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
+    // Setup CAN
+    if (Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
     {
         COMMS_UART.println("CAN bus started!");
     } 
@@ -103,6 +91,7 @@ void setup()
     }
 
 }
+
 
 //------------//
 // Begin Loop //
@@ -121,7 +110,6 @@ void setup()
 //                                                 //
 //-------------------------------------------------//
 
-
 void loop() 
 {
     // Blink the LED
@@ -135,28 +123,25 @@ void loop()
             digitalWrite(LED_BUILTIN, LOW);
     }
 
-    // Accelerate the motors
     // Every 50 milliseconds, update the speed for all motors
     //safety_timeout();
 
-    if(millis()-lastAccel >= 50)
+    // Accelerate the motors
+    if (millis()-lastAccel >= 50)
     {
-
         lastAccel = millis();
-        for(int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++)
         {
             motorList[i].accelerate();
         }
   
     }
 
-
-
     //----------------------------------//
     // send heartbeat                   //
     //----------------------------------//
 
-    if((millis()-lastFeedback)>=3)
+    if ((millis()-lastFeedback)>=3)
     {
         sendHeartbeat(Can0, heartBeatNum % 4);
         lastFeedback = millis();
@@ -168,13 +153,12 @@ void loop()
         heartBeatNum = 1;
     }
 
+    // Send identify command to all motors
     /*if((millis()-clockTimer)>=1000)
     {
         identifyDevice(Can0, 1);
         clockTimer = millis();
     }*/
-
-
 
 
     //------------------//
@@ -208,18 +192,27 @@ void loop()
         command.trim();
         if(COMMS_UART == Serial1)
             Serial.println(command);
-        String prevCommand;
+        String prevCommand;  // Shouldn't this be static???
 
         std::vector<String> args = {}; 
         parseInput(command, args, ',');
 
 
-        if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        if (args[0] == "ping") 
+        {
+            COMMS_UART.println("pong");
+        } 
+        else if (args[0] == "time") 
+        {
+            COMMS_UART.println(millis());
+        }
+
+        else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {   
 
             //Serial1.println("ctrl cmd received");
             lastCtrlCmd = millis();
-            if(command != prevCommand)
+            if (command != prevCommand)
             {
 
                 //Serial1.println("NEW COMMAND RECEIVED");
@@ -231,24 +224,24 @@ void loop()
 
                 motorList[2].setDuty(args[2].toFloat());
                 motorList[3].setDuty(args[2].toFloat());
-
         
             }
             else
             {
-                //pass if command if control command is same as previous
+                //pass if control command is same as previous
             }
 
         }
+
         else if (args[0] == "brake") 
         {
 
-            if(args[1] == "on") 
+            if (args[1] == "on") 
             {
                 Brake(true);
             }
 
-            else if(args[1] == "off")
+            else if (args[1] == "off")
             {
                 Brake(false);
             }
@@ -259,30 +252,30 @@ void loop()
         { 
 
             lastCtrlCmd = millis();
-            if(command != prevCommand)
+            if (command != prevCommand)
             {
 
-                if(args[1] == "forwards") // auto,forwards
+                if (args[1] == "forwards") // auto,forwards
                 {  
                     goForwards(args[2].toFloat());
                 }
 
-                else if(args[1] == "backwards") // auto,backwards
+                else if (args[1] == "backwards") // auto,backwards
                 { 
                     goBackwards(args[2].toFloat());
                 }
 
-                else if(args[1] == "TurnCW") // auto,backwards
+                else if (args[1] == "TurnCW") // auto,backwards
                 { 
                     turnCW();
                 }
 
-                else if(args[1] == "TurnCCW") // auto,backwards
+                else if (args[1] == "TurnCCW") // auto,backwards
                 { 
                     turnCCW();
                 }
 
-                else if(args[1] == "stop") // auto,stop
+                else if (args[1] == "stop") // auto,stop
                 {  
                     Stop();
                 }
@@ -290,19 +283,9 @@ void loop()
             }
             else
             {
-                //pass if command if control command is same as previous
+                //pass if control command is same as previous
             }
 
-        }
-
-        else if (args[0] == "ping") 
-        {
-            COMMS_UART.println("pong");
-        } 
-
-        else if (args[0] == "time") 
-        {
-            COMMS_UART.println(millis());
         }
 
     }
@@ -323,49 +306,42 @@ void loop()
 
 void safety_timeout()
 {
-
-    if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
+    if (millis() - lastCtrlCmd > 2000)  // if no control commands are received for 2 seconds
     {
-
-        lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
+        lastCtrlCmd = millis();  // just update the var so this only runs every 2 seconds.
         Stop();
-        COMMS_UART.println("No Control / Safety Timeout");
+        COMMS_UART.println("No Control, Safety Timeout");
     }
-
 }
 
 // Bypasses the acceleration to make the rover turn clockwise
 // Should only be used for autonomy
 void turnCW()
 {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
         motorList[i].sendDuty(0.6);
-    }
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
 // Should only be used for autonomy
 void turnCCW()
 {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
         motorList[i].sendDuty(-0.6);
-    }
 }
 
 // Bypasses the acceleration to make the rover stop
 // Should only be used for autonomy, but it could probably be used elsewhere
 void Stop()
 {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
         motorList[i].sendDuty(0.0);
-    }
 }
 
 // Enables or disables brake mode for all motors
 void Brake(bool enable) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
         motorList[i].setBrake(enable);
-    }
 }
 
 // Tells the rover to go forwards
@@ -373,10 +349,8 @@ void Brake(bool enable) {
 // Autonomy
 void goForwards(float speed)
 {
-    motorList[0].setDuty(speed);
-    motorList[1].setDuty(speed);
-    motorList[2].setDuty(speed);
-    motorList[3].setDuty(speed);
+    for (int i = 0; i < 4; i++ )
+        motorList[i].setDuty(speed);
 }
 
 // Tells the rover to go backwards
@@ -385,8 +359,6 @@ void goForwards(float speed)
 void goBackwards(float speed)
 {
     float temp = (-1) * speed;
-    motorList[0].setDuty(temp);
-    motorList[1].setDuty(temp);
-    motorList[2].setDuty(temp);
-    motorList[3].setDuty(temp);
+    for (int i = 0; i < 4; i++ )
+        motorList[i].setDuty(temp);
 }
