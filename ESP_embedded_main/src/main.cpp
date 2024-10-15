@@ -46,7 +46,7 @@ SFE_UBLOX_GNSS myGNSS;
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
 //Setting up for CAN0 line
-AstraFCAN Can0;
+AstraCAN Can0;
 
 //Prototypes
 int findRotationDirection(float current_direction, float target_direction);

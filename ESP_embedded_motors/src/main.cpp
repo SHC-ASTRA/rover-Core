@@ -18,9 +18,9 @@
 using namespace std;
 
 //Setting up for CAN0 line
-AstraFCAN Can0;
+AstraCAN Can0;
 
-//AstraMotors(AstraFCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
+//AstraMotors(AstraCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
 AstraMotors Motor1(&Can0, 2, 1, false, 50, 1.00F);  // Front Left
 AstraMotors Motor2(&Can0, 4, 1, false, 50, 1.00F);  // Back Left
 AstraMotors Motor3(&Can0, 1, 1, true, 50, 1.00F);  // Front Right
