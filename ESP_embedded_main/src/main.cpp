@@ -34,14 +34,14 @@ using namespace std;
 //REMOVE_LEDCRGB leds[NUM_LEDS];
 
 
-#define SEALEVELPRESSURE_HPA (1013.25)
+//Sensor declarations
 
 Adafruit_BMP3XX bmp;
 
 SFE_UBLOX_GNSS myGNSS;
 
-//Sensor declarations
 Adafruit_BNO055 bno = Adafruit_BNO055();
+
 
 //Setting up for CAN0 line
 AstraCAN Can0;
@@ -55,12 +55,13 @@ void outputGPS();
 //REMOVE_LEDvoid setLED(int r_val, int b_val, int g_val);
 void safety_timeout();
 
+
 String feedback;
 
 unsigned long clockTimer = millis();
-
 unsigned long lastFeedback;
 unsigned long lastCtrlCmd;
+
 
 void setup() 
 {
@@ -68,7 +69,7 @@ void setup()
     //-----------------//
     // Initialize Pins //
     //-----------------//
-  
+
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(SERIAL_BAUD);
     Serial1.begin(SERIAL_BAUD);
@@ -78,7 +79,7 @@ void setup()
     digitalWrite(LED_BUILTIN, LOW);
 
     
-    // You can also just use .begin()..
+    // Setup CAN
     if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
     {
         Serial.println("CAN bus started!");
@@ -102,11 +103,10 @@ void setup()
     //REMOVE_LED}
 
 
-
-
     //--------------------//
     // Initialize Sensors //
     //--------------------//
+
     if(!bno.begin()) 
     {
         Serial.println("!BNO failed to start...");
@@ -135,7 +135,6 @@ void setup()
     }
 
     initializeBMP(bmp);
-
 
 
     // Setup for GPS
