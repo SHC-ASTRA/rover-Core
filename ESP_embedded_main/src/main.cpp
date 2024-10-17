@@ -21,6 +21,25 @@
 using namespace std;
 
 
+// This will be moved to TESTBED.h, putting here for now
+// so we can just commit to rover-Core for the moment.
+
+// Extended CAN may have a 29-bit ID instead of 11 bits,
+// but using 11 bits for now.
+#define CAN_ID 0b00000000011
+//               09876543210
+
+// Layout command IDs
+// Modeled after current Serial commands for now
+typedef enum {
+    CMD_PING = 0,
+    CMD_TIME = 1,
+    CMD_CTRL = 10,
+    CMD_BRAKE = 11,
+    CMD_AUTO = 12
+} ASTRA_CMD;
+
+
 //REMOVE_LED#define NUM_LEDS 166
 //strip 1: 1-40
 //strip 2: 41-82
@@ -434,7 +453,29 @@ void loop()
     static CanFrame rxFrame;
     if(Can0.readFrame(rxFrame, 100)) {
         Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
-        // How do we want to manage ID's for different PCBs?
+        if (rxFrame.identifier == CAN_ID) {
+            // You can do this in C++ right?
+            switch(rxFrame.data[0]) {
+                case CMD_PING:
+                    Serial.println("Received PING command");
+                    break;
+                case CMD_TIME:
+                    Serial.println("Received TIME command");
+                    break;
+                case CMD_CTRL:
+                    Serial.println("Received CTRL command");
+                    break;
+                case CMD_BRAKE:
+                    Serial.println("Received BRAKE command");
+                    break;
+                case CMD_AUTO:
+                    Serial.println("Received AUTO command");
+                    break;
+                default:
+                    Serial.println("Received unknown command");
+                    break;
+            }
+        }
     }
 
 }
