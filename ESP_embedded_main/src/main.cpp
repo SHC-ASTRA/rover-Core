@@ -422,11 +422,13 @@ void loop()
 
     }
 
-    // // Relay data from the motor controller back over USB
-    // if (COMMS_UART.available())
-    // {
-    //     Serial.println(COMMS_UART.readStringUntil('\n').trim());
-    // }
+    // Relay data from the motor controller back over USB
+    if (COMMS_UART.available())
+    {
+        String feedback = COMMS_UART.readStringUntil('\n');
+        feedback.trim();
+        Serial.println(feedback);
+    }
 
 }
 
