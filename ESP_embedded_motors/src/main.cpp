@@ -290,13 +290,6 @@ void loop()
 
     }
 
-    // Wait for incoming CAN message
-    /*static CanFrame rxFrame;
-    if(Can0.readFrame(rxFrame, 100)) {
-        Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
-        // How do we want to manage ID's for different PCBs?
-    }*/
-
 }
 
 //-------------------------------------------------------//
