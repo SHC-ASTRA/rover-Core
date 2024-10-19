@@ -143,12 +143,12 @@ void loop()
 
     if ((millis()-lastFeedback)>=3)
     {
-        sendHeartbeat(Can0, heartBeatNum % 4);
+        sendHeartbeat(Can0, heartBeatNum);
         lastFeedback = millis();
         heartBeatNum++;
     }
 
-    if (heartBeatNum > 99999)
+    if (heartBeatNum > 4)
     {
         heartBeatNum = 1;
     }
