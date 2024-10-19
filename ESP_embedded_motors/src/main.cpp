@@ -193,6 +193,7 @@ void loop()
         if(COMMS_UART == Serial1)
             Serial.println(command);
         String prevCommand;  // Shouldn't this be static???
+        Serial.println("Recieved Command:  " + command);
 
         std::vector<String> args = {}; 
         parseInput(command, args, ',');
@@ -221,6 +222,13 @@ void loop()
 
                 motorList[0].setDuty(args[1].toFloat());
                 motorList[1].setDuty(args[1].toFloat());
+
+                float a = args[1].toFloat();
+                float b = args[2].toFloat();
+                Serial.print("\nSending: ");
+                Serial.print(a);
+                Serial.print(", ");
+                Serial.print(b);
 
                 motorList[2].setDuty(args[2].toFloat());
                 motorList[3].setDuty(args[2].toFloat());
@@ -319,7 +327,9 @@ void safety_timeout()
 void turnCW()
 {
     for (int i = 0; i < 4; i++)
-        motorList[i].sendDuty(0.6);
+        unsigned char* a = motorList[i].sendDuty(0.6);
+        unsigned char v = *(a+0);
+        Serial.print(v);
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
