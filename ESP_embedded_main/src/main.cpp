@@ -128,7 +128,9 @@ void setup()
 
     if(!bno.begin()) 
     {
+        while(1){
         Serial.println("!BNO failed to start...");
+        }
     } 
     else 
     {
@@ -137,7 +139,9 @@ void setup()
 
     if(!bmp.begin_I2C()) 
     {
+        while(1){
         Serial.println("bmp not working");
+        }
     } 
     else 
     {
@@ -146,7 +150,9 @@ void setup()
 
     if(!myGNSS.begin()) 
     {
+        while(1){
         Serial.println("GPS not working");
+        }
     }
     else 
     {
