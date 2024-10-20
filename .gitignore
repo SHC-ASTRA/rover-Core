@@ -5,3 +5,5 @@ log/
 
 package.json
 package-lock.json
+core_ws/.vscode/c_cpp_properties.json
+core_ws/.vscode/settings.json
