@@ -48,7 +48,7 @@ void safety_timeout();
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
-unsigned long lastFeedback;
+unsigned long lastFeedback = 0;
 unsigned long lastCtrlCmd;
 unsigned long clockTimer = millis();
 unsigned long heartBeatNum = 1;
@@ -62,7 +62,7 @@ void setup()
     //-----------------//
     // Initialize Pins //
     //-----------------//
-  
+
     pinMode(LED_BUILTIN, OUTPUT);
     Serial1.begin(SERIAL_BAUD);
     Serial.begin(SERIAL_BAUD);
@@ -143,14 +143,13 @@ void loop()
 
     if ((millis()-lastFeedback)>=3)
     {
-        sendHeartbeat(Can0, heartBeatNum % 4);
+        sendHeartbeat(Can0, heartBeatNum);
         lastFeedback = millis();
         heartBeatNum++;
-    }
-
-    if (heartBeatNum > 99999)
-    {
-        heartBeatNum = 1;
+        if (heartBeatNum > 4)
+        {
+            heartBeatNum = 1;
+        }
     }
 
     // Send identify command to all motors
@@ -190,8 +189,10 @@ void loop()
 
         String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
         command.trim();
-        if(COMMS_UART == Serial1)
+// How to do this???????????
+#if COMMS_UART == Serial1
             Serial.println(command);
+#endif
         String prevCommand;  // Shouldn't this be static???
 
         std::vector<String> args = {}; 
