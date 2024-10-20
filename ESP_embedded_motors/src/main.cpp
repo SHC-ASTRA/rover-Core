@@ -208,10 +208,6 @@ void loop()
             COMMS_UART.println(millis());
         }
 
-        else if (args[0] == "test") {
-            COMMS_UART.println(Motor1.getSetDuty());
-        }
-
         else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {   
 
