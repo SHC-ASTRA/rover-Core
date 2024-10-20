@@ -48,7 +48,7 @@ void safety_timeout();
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
-unsigned long lastFeedback;
+unsigned long lastFeedback = 0;
 unsigned long lastCtrlCmd;
 unsigned long clockTimer = millis();
 unsigned long heartBeatNum = 1;
@@ -62,7 +62,7 @@ void setup()
     //-----------------//
     // Initialize Pins //
     //-----------------//
-  
+
     pinMode(LED_BUILTIN, OUTPUT);
     Serial1.begin(SERIAL_BAUD);
     Serial.begin(SERIAL_BAUD);
@@ -146,11 +146,10 @@ void loop()
         sendHeartbeat(Can0, heartBeatNum);
         lastFeedback = millis();
         heartBeatNum++;
-    }
-
-    if (heartBeatNum > 4)
-    {
-        heartBeatNum = 1;
+        if (heartBeatNum > 4)
+        {
+            heartBeatNum = 1;
+        }
     }
 
     // Send identify command to all motors
@@ -190,10 +189,11 @@ void loop()
 
         String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
         command.trim();
-        if(COMMS_UART == Serial1)
+// How to do this???????????
+#if COMMS_UART == Serial1
             Serial.println(command);
+#endif
         String prevCommand;  // Shouldn't this be static???
-        Serial.println("Recieved Command:  " + command);
 
         std::vector<String> args = {}; 
         parseInput(command, args, ',');
@@ -206,6 +206,10 @@ void loop()
         else if (args[0] == "time") 
         {
             COMMS_UART.println(millis());
+        }
+
+        else if (args[0] == "test") {
+            COMMS_UART.println(Motor1.getSetDuty());
         }
 
         else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
@@ -222,13 +226,6 @@ void loop()
 
                 motorList[0].setDuty(args[1].toFloat());
                 motorList[1].setDuty(args[1].toFloat());
-
-                float a = args[1].toFloat();
-                float b = args[2].toFloat();
-                Serial.print("\nSending: ");
-                Serial.print(a);
-                Serial.print(", ");
-                Serial.print(b);
 
                 motorList[2].setDuty(args[2].toFloat());
                 motorList[3].setDuty(args[2].toFloat());
@@ -327,9 +324,7 @@ void safety_timeout()
 void turnCW()
 {
     for (int i = 0; i < 4; i++)
-        unsigned char* a = motorList[i].sendDuty(0.6);
-        unsigned char v = *(a+0);
-        Serial.print(v);
+        motorList[i].sendDuty(0.6);
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
