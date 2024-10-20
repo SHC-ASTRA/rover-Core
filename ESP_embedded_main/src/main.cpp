@@ -254,9 +254,10 @@ void loop()
         double gpsData[3];
         float bnoData2[7];
 
-        getPosition(myGNSS, gpsData);
+        //getPosition(myGNSS, gpsData);
         pullBNOData(bno, bnoData2);
 
+        /*
         Serial.print("core,telemetry,");
         Serial.print(gpsData[0],7);
         Serial.print(",");
@@ -265,18 +266,25 @@ void loop()
         Serial.print((int)gpsData[2]);
         Serial.print(",");
         Serial.print(angVelocityData.gyro.x);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(angVelocityData.gyro.y);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(angVelocityData.gyro.z);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(accelerometerData.acceleration.x);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(accelerometerData.acceleration.y);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(accelerometerData.acceleration.z);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(orientationData.orientation.x);
+        //Serial.print(0.0);
         Serial.print(",");
         Serial.print(bmp.temperature);
         Serial.print(",");
@@ -284,7 +292,7 @@ void loop()
         Serial.print(",");
         Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
         Serial.println();
-        
+        */
 
         //Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", , , , , , , , , , , );
         //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
