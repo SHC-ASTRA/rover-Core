@@ -71,15 +71,6 @@ void setup()
     delay(2000);
     digitalWrite(LED_BUILTIN, LOW);
 
-    // Initalization for using CAN with the sparkmax
-    /* Old code for reference
-    Can0.begin();
-    Can0.setBaudRate(1000000);
-    Can0.setMaxMB(16);
-    Can0.enableFIFO();
-    Can0.enableFIFOInterrupt();
-    */
-
     // Setup CAN
     if (Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
     {
@@ -124,8 +115,6 @@ void loop()
     }
 
     // Every 50 milliseconds, update the speed for all motors
-    //safety_timeout();
-
     // Accelerate the motors
     if (millis()-lastAccel >= 50)
     {
@@ -152,12 +141,7 @@ void loop()
         }
     }
 
-    // Send identify command to all motors
-    /*if((millis()-clockTimer)>=1000)
-    {
-        identifyDevice(Can0, 1);
-        clockTimer = millis();
-    }*/
+    safety_timeout();
 
 
     //------------------//
@@ -179,21 +163,19 @@ void loop()
     // The giant CMD helps with finding this place
     //
     // Commands will be received as a comma separated value string
-    // Ex: "ctrl,1,1,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
-    // The program parses the string so that each piece of data can be used individually
-    // For examples of parsing data you can use the link below
-    // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+    // Ex: "ctrl,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
+    // commands will be deliminated by "," and put into the array args[]
 
     if (COMMS_UART.available()) 
     {
 
         String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
         command.trim();
-// How to do this???????????
+
 #if COMMS_UART == Serial1
             Serial.println(command);
 #endif
-        String prevCommand;  // Shouldn't this be static???
+        String prevCommand;
 
         std::vector<String> args = {}; 
         parseInput(command, args, ',');
@@ -211,12 +193,9 @@ void loop()
         else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {   
 
-            //Serial1.println("ctrl cmd received");
             lastCtrlCmd = millis();
             if (command != prevCommand)
             {
-
-                //Serial1.println("NEW COMMAND RECEIVED");
 
                 prevCommand = command;
 

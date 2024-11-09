@@ -40,17 +40,17 @@ typedef enum {
 } ASTRA_CMD;
 
 
-//REMOVE_LED#define NUM_LEDS 166
-//strip 1: 1-40
-//strip 2: 41-82
-//strip 3: 83-124
-//strip 4: 125-166
-//CCW: 1,2,3,4
+#define NUM_LEDS 166
+// strip 1: 1-40
+// strip 2: 41-82
+// strip 3: 83-124
+// strip 4: 125-166
+// CCW: 1,2,3,4
 
-//REMOVE_LEDint led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
-//REMOVE_LEDint led_counter = 0;
+int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+int led_counter = 0;
 
-//REMOVE_LEDCRGB leds[NUM_LEDS];
+CRGB leds[NUM_LEDS];
 
 
 //Sensor declarations
@@ -71,7 +71,7 @@ bool autoTurn(int time,float target_direction);
 String outputBno();
 String outputBmp();
 void outputGPS();
-//REMOVE_LEDvoid setLED(int r_val, int b_val, int g_val);
+void setLED(int r_val, int b_val, int g_val);
 void safety_timeout();
 
 
@@ -96,7 +96,6 @@ void setup()
 
     delay(2000);
     digitalWrite(LED_BUILTIN, LOW);
-
     
     // Setup CAN
     if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
@@ -108,18 +107,14 @@ void setup()
         Serial.println("CAN bus failed!");
     }
 
-    // Old, may or may not be needed
-    // pinMode(20, INPUT_PULLUP); //Needed for IMU to work on PCB
-
-
-    //REMOVE_LEDFastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
-    //REMOVE_LEDFastLED.setBrightness(255);
-    //REMOVE_LEDfor(int i = 0; i < NUM_LEDS; ++i)
-    //REMOVE_LED{
-    //REMOVE_LED  leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
-    //REMOVE_LED  FastLED.show();
-    //REMOVE_LED  delay(10);
-    //REMOVE_LED}
+    //FastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(255);
+    for(int i = 0; i < NUM_LEDS; ++i)
+    {
+      leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
+      FastLED.show();
+      delay(10);
+    }
 
 
     //--------------------//
@@ -256,47 +251,6 @@ void loop()
 
         //getPosition(myGNSS, gpsData);
         pullBNOData(bno, bnoData2);
-
-        /*
-        Serial.print("core,telemetry,");
-        Serial.print(gpsData[0],7);
-        Serial.print(",");
-        Serial.print(gpsData[1],7);
-        Serial.print(",");
-        Serial.print((int)gpsData[2]);
-        Serial.print(",");
-        Serial.print(angVelocityData.gyro.x);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(angVelocityData.gyro.y);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(angVelocityData.gyro.z);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(accelerometerData.acceleration.x);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(accelerometerData.acceleration.y);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(accelerometerData.acceleration.z);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(orientationData.orientation.x);
-        //Serial.print(0.0);
-        Serial.print(",");
-        Serial.print(bmp.temperature);
-        Serial.print(",");
-        Serial.print(bmp.pressure);
-        Serial.print(",");
-        Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
-        Serial.println();
-        */
-
-        //Serial.printf(",%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", , , , , , , , , , , );
-        //gps: lat, long, sats bno: gyro_x,y,z, acc_x,y,z, heading bmp: temp, pressure, altitude
-        //Serial.println(feedback);
         
         lastFeedback = millis();
 
@@ -451,10 +405,10 @@ void loop()
         {   
             for(int i = 0; i < 3; i++)
             {
-                //REMOVE_LEDled_rbg[i] = args[i+1].toInt();
+                led_rbg[i] = args[i+1].toInt();
             }
             
-            //REMOVE_LEDsetLED(led_rbg[0], led_rbg[1], led_rbg[2]);
+            setLED(led_rbg[0], led_rbg[1], led_rbg[2]);
 
         } 
 
@@ -636,10 +590,10 @@ int findRotationDirection(float current_direction, float target_direction)
 
 void setLED(int r_val, int b_val, int g_val)
 {
-    //REMOVE_LEDfor(int i = 0; i < NUM_LEDS; ++i)
-    //REMOVE_LED{
-    //REMOVE_LED  leds[i] = CRGB(r_val, b_val, g_val);
-    //REMOVE_LED  FastLED.show();
-    //REMOVE_LED  delay(10);
-    //REMOVE_LED}
+    for(int i = 0; i < NUM_LEDS; ++i)
+    {
+      leds[i] = CRGB(r_val, b_val, g_val);
+      FastLED.show();
+      delay(10);
+    }
 }
