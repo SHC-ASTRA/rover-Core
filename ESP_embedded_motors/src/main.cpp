@@ -265,7 +265,39 @@ void loop()
 
     }
 
+#ifdef DEBUG
+    static CanFrame rxFrame;
+    if(ESP32Can.readFrame(rxFrame, 10)) {
+        // Decode the ID
 
+        uint32_t msgId = rxFrame.identifier;
+        // Pull out device ID and API ID
+        uint8_t deviceId = msgId & 0x3F;
+        uint32_t apiId = (msgId >> 6) & 0x3FF;
+
+        // Log message if it seems interesting
+        if (apiId == 0x99 || apiId == 0x60 || apiId == 0x61 || apiId == 0x62 || apiId == 0x63 || apiId == 0x64) {
+            Serial.print("Device ");
+            Serial.print(deviceId);
+            Serial.print(" sent CAN message with API ID: ");
+            Serial.print(apiId, HEX);
+            // Message data:
+            if (rxFrame.data_length_code == 0)
+                Serial.println("No data.");
+            else {
+                Serial.print("Data (");
+                Serial.print(rxFrame.data_length_code);
+                Serial.print(" B): ");
+                for (int i = 0; i < rxFrame.data_length_code; i++) {
+                    Serial.print(rxFrame.data[i], HEX);
+                    Serial.print(" ");
+                }
+                Serial.println();
+            }
+        }
+
+    }
+#endif
 }
 
 //-------------------------------------------------------//
