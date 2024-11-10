@@ -32,11 +32,10 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 // Purposefully override TESTBED.h for motor controller mcu for testing
 #define COMMS_UART Serial1
 
-// Will echo all input over USB when defined
-#define SERIAL_ECHO
 
-
-//Prototypes
+//------------//
+// Prototypes //
+//------------//
 
 void turnCW();
 void turnCCW();
@@ -47,6 +46,10 @@ void goBackwards(float speed);
 void loopHeartbeats();
 void safety_timeout();
 
+
+//--------//
+// Timing //
+//--------//
 
 unsigned long lastAccel;
 unsigned long lastDuty;
@@ -60,12 +63,12 @@ bool ledState = false;
 String feedback;
 
 
+//-------//
+// Setup //
+//-------//
+
 void setup() 
 {
-    //-----------------//
-    // Initialize Pins //
-    //-----------------//
-
     pinMode(LED_BUILTIN, OUTPUT);
     Serial1.begin(SERIAL_BAUD);
     Serial.begin(SERIAL_BAUD);
@@ -83,7 +86,6 @@ void setup()
     {
         COMMS_UART.println("CAN bus failed!");
     }
-
 }
 
 
@@ -126,7 +128,6 @@ void loop()
         {
             motorList[i].accelerate();
         }
-  
     }
 
     //----------------------------------//
@@ -167,14 +168,13 @@ void loop()
     //
     // Commands will be received as a comma separated value string
     // Ex: "ctrl,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
-    // commands will be deliminated by "," and put into the array args[]
+    // commands will be deliminated by "," and put into vector<String> args
 
     if (COMMS_UART.available()) 
     {
-
         String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
         command.trim();
-#ifdef SERIAL_ECHO
+#ifdef DEBUG
         Serial.println(command);
 #endif
         String prevCommand;
@@ -185,7 +185,12 @@ void loop()
 
         if (args[0] == "ping") 
         {
+#ifndef DEBUG
             COMMS_UART.println("pong");
+#else
+            Serial.println("pong");
+            Serial1.println("pong");
+#endif
         } 
         else if (args[0] == "time") 
         {
@@ -194,11 +199,9 @@ void loop()
 
         else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {   
-
             lastCtrlCmd = millis();
             if (command != prevCommand)
             {
-
                 prevCommand = command;
 
                 motorList[0].setDuty(args[1].toFloat());
@@ -206,37 +209,33 @@ void loop()
 
                 motorList[2].setDuty(args[2].toFloat());
                 motorList[3].setDuty(args[2].toFloat());
-        
             }
-            else
-            {
-                //pass if control command is same as previous
-            }
-
         }
 
         else if (args[0] == "brake") 
         {
-
             if (args[1] == "on") 
             {
                 Brake(true);
+#ifdef DEBUG
+                Serial.println("Setting brakemode on.");
+#endif
             }
 
             else if (args[1] == "off")
             {
                 Brake(false);
+#ifdef DEBUG
+                Serial.println("Setting brakemode off.");
+#endif
             }
-
         }
 
         else if (args[0] == "auto") // Commands for autonomy
         { 
-
             lastCtrlCmd = millis();
             if (command != prevCommand)
             {
-
                 if (args[1] == "forwards") // auto,forwards
                 {  
                     goForwards(args[2].toFloat());
@@ -261,16 +260,11 @@ void loop()
                 {  
                     Stop();
                 }
-
             }
-            else
-            {
-                //pass if control command is same as previous
-            }
-
         }
 
     }
+
 
 }
 
