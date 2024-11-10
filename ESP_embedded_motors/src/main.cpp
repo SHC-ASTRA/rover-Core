@@ -13,7 +13,7 @@
 #endif
 #include "AstraMisc.h"
 #include "AstraMotors.h"
-#include "AstraCAN.h"
+#include "AstraREVCAN.h"
 
 using namespace std;
 
@@ -31,6 +31,9 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first,
 // Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
 // Purposefully override TESTBED.h for motor controller mcu for testing
 #define COMMS_UART Serial1
+
+// Will echo all input over USB when defined
+#define SERIAL_ECHO
 
 
 //Prototypes
@@ -143,7 +146,7 @@ void loop()
 
     if ((millis()-lastFeedback)>=3)
     {
-        sendHeartbeat(Can0, heartBeatNum);
+        CAN_sendHeartbeat(heartBeatNum, Can0);
         lastFeedback = millis();
         heartBeatNum++;
         if (heartBeatNum > 4)
@@ -189,9 +192,8 @@ void loop()
 
         String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
         command.trim();
-// How to do this???????????
-#if COMMS_UART == Serial1
-            Serial.println(command);
+#ifdef SERIAL_ECHO
+        Serial.println(command);
 #endif
         String prevCommand;  // Shouldn't this be static???
 
