@@ -180,7 +180,7 @@ void loop()
         String prevCommand;
 
         std::vector<String> args = {}; 
-        parseInput(command, args, ',');
+        parseInput(command, args);
 
 
         if (args[0] == "ping") 
