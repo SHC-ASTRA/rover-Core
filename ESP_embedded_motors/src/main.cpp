@@ -200,7 +200,7 @@ void loop()
         else if (args[0] == "id") {
             CAN_identifySparkMax(2, Can0);
         }
-        else if (args[0] == "speed") {
+        else if (args[0] == "speed" && checkArgs(args, 1)) {
             CAN_sendSpeed(2, args[1].toFloat(), Can0);
         }
 #endif
