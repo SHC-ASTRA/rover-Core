@@ -17,19 +17,19 @@
 
 using namespace std;
 
-//Setting up for CAN0 line
+// Setting up for CAN0 line
 AstraCAN Can0;
 
-//AstraMotors(AstraCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
-AstraMotors Motor1(&Can0, 2, 1, false, 50, 1.00F);  // Front Left
-AstraMotors Motor2(&Can0, 4, 1, false, 50, 1.00F);  // Back Left
-AstraMotors Motor3(&Can0, 1, 1, true, 50, 1.00F);  // Front Right
-AstraMotors Motor4(&Can0, 3, 1, true, 50, 1.00F);  // Back Right
+// AstraMotors(AstraCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
+AstraMotors Motor1(&Can0, MOTOR_ID_FL, 1, false, 50, 1.00F);  // Front Left
+AstraMotors Motor2(&Can0, MOTOR_ID_BL, 1, false, 50, 1.00F);  // Back Left
+AstraMotors Motor3(&Can0, MOTOR_ID_FR, 1, true, 50, 1.00F);   // Front Right
+AstraMotors Motor4(&Can0, MOTOR_ID_BR, 1, true, 50, 1.00F);   // Back Right
 
-AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};//Left motors first, Right motors Second
+AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};  //Left motors first, right motors second
 
 // Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
-// Purposefully override TESTBED.h for motor controller mcu for testing
+// Purposefully override TESTBED.h for motor mcu for testing
 #define COMMS_UART Serial1
 
 
@@ -275,7 +275,7 @@ void loop()
 
 #ifdef DEBUG
     static CanFrame rxFrame;
-    if(ESP32Can.readFrame(rxFrame, 10)) {
+    if (ESP32Can.readFrame(rxFrame, 10)) {
         // Decode the ID
 
         uint32_t msgId = rxFrame.identifier;
@@ -303,7 +303,6 @@ void loop()
                 Serial.println();
             }
         }
-
     }
 #endif
 }
