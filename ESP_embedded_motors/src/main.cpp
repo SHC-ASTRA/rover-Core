@@ -196,6 +196,14 @@ void loop()
         {
             COMMS_UART.println(millis());
         }
+#ifdef DEBUG
+        else if (args[0] == "id") {
+            CAN_identifySparkMax(2, Can0);
+        }
+        else if (args[0] == "speed") {
+            CAN_sendSpeed(2, args[1].toFloat(), Can0);
+        }
+#endif
 
         else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {   
