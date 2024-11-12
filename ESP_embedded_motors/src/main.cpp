@@ -30,7 +30,9 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};  //Left motors firs
 
 // Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
 // Purposefully override TESTBED.h for motor mcu for testing
-#define COMMS_UART Serial1
+#ifdef DEBUG
+#   define COMMS_UART Serial
+#endif
 
 
 //------------//
