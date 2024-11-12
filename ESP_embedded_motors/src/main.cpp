@@ -123,7 +123,7 @@ void loop()
 
     // Every 50 milliseconds, update the speed for all motors
     // Accelerate the motors
-    if (millis()-lastAccel >= 50)
+    if (millis() - lastAccel >= 50)
     {
         lastAccel = millis();
         for (int i = 0; i < 4; i++)
@@ -204,6 +204,14 @@ void loop()
         }
         else if (args[0] == "speed" && checkArgs(args, 1)) {
             CAN_sendSpeed(2, args[1].toFloat(), Can0);
+        }
+        else if (args[0] == "newduty") {
+            Serial.print("Setting duty cycle ");
+            Serial.println(args[1].toFloat());
+            CAN_sendDutyCycle(1, args[1].toFloat(), Can0);
+            CAN_sendDutyCycle(2, args[1].toFloat(), Can0);
+            CAN_sendDutyCycle(3, args[1].toFloat(), Can0);
+            CAN_sendDutyCycle(4, args[1].toFloat(), Can0);
         }
 #endif
 
@@ -287,15 +295,15 @@ void loop()
 
         // Log message if it seems interesting
         if (apiId == 0x99 || apiId == 0x60 || apiId == 0x61 || apiId == 0x62 || apiId == 0x63 || apiId == 0x64) {
-            Serial.print("Device ");
+            Serial.print("From ");
             Serial.print(deviceId);
-            Serial.print(" sent CAN message with API ID: ");
+            Serial.print(" with API ID: ");
             Serial.print(apiId, HEX);
             // Message data:
             if (rxFrame.data_length_code == 0)
-                Serial.println("No data.");
+                Serial.println(" No data.");
             else {
-                Serial.print("Data (");
+                Serial.print(" Data (");
                 Serial.print(rxFrame.data_length_code);
                 Serial.print(" B): ");
                 for (int i = 0; i < rxFrame.data_length_code; i++) {
