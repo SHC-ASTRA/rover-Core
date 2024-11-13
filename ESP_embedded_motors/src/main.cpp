@@ -1,10 +1,6 @@
 // Includes
 #include <Arduino.h>
-#include <iostream>
-#include <string>
 #include <cmath>
-#include <cstdlib>
-#include <vector>
 // Our own resources
 #if defined(TESTBED)
 #   include "project/TESTBED.h"
