@@ -13,7 +13,11 @@
 #endif
 #include "AstraMisc.h"
 #include "AstraMotors.h"
-#include "AstraREVCAN.h"
+#ifdef OLD_ASTRACAN_ENABLE
+#   include "AstraCAN.h"
+#else
+#   include "AstraREVCAN.h"
+#endif
 
 using namespace std;
 
