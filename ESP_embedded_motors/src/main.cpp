@@ -34,6 +34,8 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};  //Left motors firs
 #   define COMMS_UART Serial
 #endif
 
+#define DEBUG_STATUS
+
 
 //------------//
 // Prototypes //
@@ -53,6 +55,7 @@ void safety_timeout();
 // Timing //
 //--------//
 
+unsigned long lastMotorStatus = 0;
 unsigned long lastAccel;
 unsigned long lastDuty;
 unsigned long lastHB;
@@ -293,7 +296,10 @@ void loop()
         uint8_t deviceId = msgId & 0x3F;
         uint32_t apiId = (msgId >> 6) & 0x3FF;
 
-#if defined(DEBUG)
+        if (apiId == 0x61 && deviceId == Motor1.getID())
+            CAN_parseStatus1(rxFrame.data, millis(), Motor1.status1);
+
+#if defined(DEBUG_STATUS)
         // Log message if it seems interesting
         if (apiId == 0x99 || apiId == 0x60 || apiId == 0x61 || apiId == 0x62 || apiId == 0x63 || apiId == 0x64) {
             Serial.print(apiId, HEX);
@@ -315,6 +321,21 @@ void loop()
         }
 #endif
     }
+
+#if defined(DEBUG)
+    if (millis() - lastMotorStatus > 2000) {
+        lastMotorStatus = millis();
+
+        Serial.print(millis() - Motor1.status1.timestamp);
+        Serial.print(" ms ago: ");
+        Serial.print(Motor1.status1.motorTemperature);
+        Serial.print(" *C; ");
+        Serial.print(Motor1.status1.busVoltage);
+        Serial.print(" V; ");
+        Serial.print(Motor1.status1.outputCurrent);
+        Serial.println(" A");
+    }
+#endif
 }
 
 //-------------------------------------------------------//
