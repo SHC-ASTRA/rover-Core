@@ -283,7 +283,7 @@ void loop()
 
     }
 
-#ifdef DEBUG
+    // Check for incoming CAN messages
     static CanFrame rxFrame;
     if (ESP32Can.readFrame(rxFrame, 10)) {
         // Decode the ID
@@ -293,28 +293,28 @@ void loop()
         uint8_t deviceId = msgId & 0x3F;
         uint32_t apiId = (msgId >> 6) & 0x3FF;
 
+#if defined(DEBUG)
         // Log message if it seems interesting
         if (apiId == 0x99 || apiId == 0x60 || apiId == 0x61 || apiId == 0x62 || apiId == 0x63 || apiId == 0x64) {
-            Serial.print("From ");
-            Serial.print(deviceId);
-            Serial.print(" with API ID: ");
             Serial.print(apiId, HEX);
+            Serial.print(" from ");
+            Serial.print(deviceId);
             // Message data:
             if (rxFrame.data_length_code == 0)
-                Serial.println(" No data.");
+                Serial.print(" - no data.");
             else {
-                Serial.print(" Data (");
+                Serial.print(" - data: (");
                 Serial.print(rxFrame.data_length_code);
-                Serial.print(" B): ");
+                Serial.print(" B) ");
                 for (int i = 0; i < rxFrame.data_length_code; i++) {
                     Serial.print(rxFrame.data[i], HEX);
                     Serial.print(" ");
                 }
-                Serial.println();
             }
+            Serial.println();
         }
-    }
 #endif
+    }
 }
 
 //-------------------------------------------------------//
@@ -333,9 +333,9 @@ void safety_timeout()
 {
     if (millis() - lastCtrlCmd > 2000)  // if no control commands are received for 2 seconds
     {
-        lastCtrlCmd = millis();  // just update the var so this only runs every 2 seconds.
-        Stop();
+        lastCtrlCmd = millis();
         COMMS_UART.println("No Control, Safety Timeout");
+        Stop();
     }
 }
 
