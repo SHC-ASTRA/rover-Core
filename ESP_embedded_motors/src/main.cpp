@@ -305,6 +305,9 @@ void loop()
 
         if (apiId == 0x61 && deviceId == Motor1.getID())
             CAN_parseStatus1(rxFrame.data, millis(), Motor1.status1);
+        
+        if (apiId == 0x62 && deviceId == Motor1.getID())
+            CAN_parseStatus2(rxFrame.data, millis(), Motor1.status2);
 
 #if defined(DEBUG_STATUS)
         // Log message if it seems interesting
@@ -333,6 +336,7 @@ void loop()
     if (millis() - lastMotorStatus > 2000) {
         lastMotorStatus = millis();
 
+        // Status 1
         Serial.print(millis() - Motor1.status1.timestamp);
         Serial.print(" ms ago: ");
         Serial.print(Motor1.status1.motorTemperature);
@@ -341,6 +345,12 @@ void loop()
         Serial.print(" V; ");
         Serial.print(Motor1.status1.outputCurrent);
         Serial.println(" A");
+        
+        // Status 2
+        Serial.print(millis() - Motor2.status1.timestamp);
+        Serial.print(" ms ago: ");
+        Serial.print(Motor2.status2.sensorPosition);
+        Serial.println(" position");
     }
 #endif
 }
