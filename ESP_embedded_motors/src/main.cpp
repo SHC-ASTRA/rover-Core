@@ -26,7 +26,7 @@ AstraMotors Motor2(&Can0, MOTOR_ID_BL, CTRL_DUTYCYCLE, false, 1000, 1.0);  // Ba
 AstraMotors Motor3(&Can0, MOTOR_ID_FR, CTRL_DUTYCYCLE, true, 1000, 1.0);   // Front Right
 AstraMotors Motor4(&Can0, MOTOR_ID_BR, CTRL_DUTYCYCLE, true, 1000, 1.0);   // Back Right
 
-AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};  //Left motors first, right motors second
+AstraMotors* motorList[4] = {&Motor1, &Motor2, &Motor3, &Motor4};  //Left motors first, right motors second
 
 // Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
 // Purposefully override TESTBED.h for motor mcu for testing
@@ -34,7 +34,7 @@ AstraMotors motorList[4] = {Motor1, Motor2, Motor3, Motor4};  //Left motors firs
 #   define COMMS_UART Serial
 #endif
 
-#define DEBUG_STATUS
+// #define DEBUG_STATUS
 
 
 //------------//
@@ -131,7 +131,7 @@ void loop()
         lastAccel = millis();
         for (int i = 0; i < 4; i++)
         {
-            motorList[i].accelerate();
+            motorList[i]->accelerate();
         }
     }
 
@@ -206,7 +206,7 @@ void loop()
             CAN_identifySparkMax(2, Can0);
         }
         else if (args[0] == "speed" && checkArgs(args, 1)) {
-            CAN_sendSpeed(2, args[1].toFloat(), Can0);
+            CAN_sendSpeed(MOTOR_ID_BL, args[1].toFloat(), Can0);
         }
         else if (args[0] == "newduty") {
             Serial.print("Setting duty cycle ");
@@ -221,6 +221,7 @@ void loop()
             for (int i = 0; i < 4; i++)
             {
                 CAN_sendDutyCycle(i, 0, Can0);
+                Stop();
             }
         }
 #endif
@@ -232,11 +233,17 @@ void loop()
             {
                 prevCommand = command;
 
-                motorList[0].setDuty(args[1].toFloat());
-                motorList[1].setDuty(args[1].toFloat());
+                if (checkArgs(args, 2)) 
+                {
+                    motorList[0]->setDuty(args[1].toFloat());
+                    motorList[1]->setDuty(args[1].toFloat());
 
-                motorList[2].setDuty(args[2].toFloat());
-                motorList[3].setDuty(args[2].toFloat());
+                    motorList[2]->setDuty(args[2].toFloat());
+                    motorList[3]->setDuty(args[2].toFloat());
+                } else {
+                    for (int i = 0; i < 4; i++)
+                        motorList[i]->setDuty(args[1].toFloat());
+                }
             }
         }
 
@@ -303,11 +310,21 @@ void loop()
         uint8_t deviceId = msgId & 0x3F;
         uint32_t apiId = (msgId >> 6) & 0x3FF;
 
-        if (apiId == 0x61 && deviceId == Motor1.getID())
-            CAN_parseStatus1(rxFrame.data, millis(), Motor1.status1);
-        
-        if (apiId == 0x62 && deviceId == Motor1.getID())
-            CAN_parseStatus2(rxFrame.data, millis(), Motor1.status2);
+        if (apiId == 0x61) {
+            for (int i = 0; i < 4; i++) {
+                if (deviceId == motorList[i]->getID()) {
+                    CAN_parseStatus1(rxFrame.data, millis(), motorList[i]->status1);
+                    break;
+                }
+            }
+        } else if (apiId == 0x62) {
+            for (int i = 0; i < 4; i++) {
+                if (deviceId == motorList[i]->getID()) {
+                    CAN_parseStatus2(rxFrame.data, millis(), motorList[i]->status2);
+                    break;
+                }
+            }
+        }
 
 #if defined(DEBUG_STATUS)
         // Log message if it seems interesting
@@ -382,7 +399,7 @@ void safety_timeout()
 void turnCW()
 {
     for (int i = 0; i < 4; i++)
-        motorList[i].sendDuty(0.6);
+        motorList[i]->sendDuty(0.6);
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
@@ -390,7 +407,7 @@ void turnCW()
 void turnCCW()
 {
     for (int i = 0; i < 4; i++)
-        motorList[i].sendDuty(-0.6);
+        motorList[i]->sendDuty(-0.6);
 }
 
 // Bypasses the acceleration to make the rover stop
@@ -398,13 +415,13 @@ void turnCCW()
 void Stop()
 {
     for (int i = 0; i < 4; i++)
-        motorList[i].sendDuty(0.0);
+        motorList[i]->sendDuty(0.0);
 }
 
 // Enables or disables brake mode for all motors
 void Brake(bool enable) {
     for (int i = 0; i < 4; i++)
-        motorList[i].setBrake(enable);
+        motorList[i]->setBrake(enable);
 }
 
 // Tells the rover to go forwards
@@ -413,7 +430,7 @@ void Brake(bool enable) {
 void goForwards(float speed)
 {
     for (int i = 0; i < 4; i++ )
-        motorList[i].setDuty(speed);
+        motorList[i]->setDuty(speed);
 }
 
 // Tells the rover to go backwards
@@ -423,5 +440,5 @@ void goBackwards(float speed)
 {
     float temp = (-1) * speed;
     for (int i = 0; i < 4; i++ )
-        motorList[i].setDuty(temp);
+        motorList[i]->setDuty(temp);
 }
