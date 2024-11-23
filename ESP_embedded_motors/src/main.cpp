@@ -313,14 +313,14 @@ void loop()
         if (apiId == 0x61) {
             for (int i = 0; i < 4; i++) {
                 if (deviceId == motorList[i]->getID()) {
-                    CAN_parseStatus1(rxFrame.data, millis(), motorList[i]->status1);
+                    motorList[i]->parseStatus1(rxFrame.data);
                     break;
                 }
             }
         } else if (apiId == 0x62) {
             for (int i = 0; i < 4; i++) {
                 if (deviceId == motorList[i]->getID()) {
-                    CAN_parseStatus2(rxFrame.data, millis(), motorList[i]->status2);
+                    motorList[i]->parseStatus2(rxFrame.data);
                     break;
                 }
             }
