@@ -141,7 +141,7 @@ void loop()
 
     if ((millis()-lastFeedback)>=3)
     {
-        CAN_sendHeartbeat(heartBeatNum, Can0);
+        sendHeartbeat(Can0, heartBeatNum);
         lastFeedback = millis();
         heartBeatNum++;
         if (heartBeatNum > 4)
@@ -201,7 +201,7 @@ void loop()
         {
             COMMS_UART.println(millis());
         }
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(OLD_ASTRACAN_ENABLE)
         else if (args[0] == "id") {
             CAN_identifySparkMax(2, Can0);
         }
@@ -215,6 +215,13 @@ void loop()
             CAN_sendDutyCycle(2, args[1].toFloat(), Can0);
             CAN_sendDutyCycle(3, args[1].toFloat(), Can0);
             CAN_sendDutyCycle(4, args[1].toFloat(), Can0);
+        }
+        else if (args[0] == "stop") {
+            Serial.println("Stopping all motors");
+            for (int i = 0; i < 4; i++)
+            {
+                CAN_sendDutyCycle(i, 0, Can0);
+            }
         }
 #endif
 
@@ -288,7 +295,7 @@ void loop()
 
     // Check for incoming CAN messages
     static CanFrame rxFrame;
-    if (ESP32Can.readFrame(rxFrame, 10)) {
+    if (ESP32Can.readFrame(rxFrame, 1)) {
         // Decode the ID
 
         uint32_t msgId = rxFrame.identifier;
