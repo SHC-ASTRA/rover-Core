@@ -49,6 +49,7 @@ void goForwards(float speed);
 void goBackwards(float speed);
 void loopHeartbeats();
 void safety_timeout();
+void driveMeters(float meters);
 
 
 //--------//
@@ -414,8 +415,10 @@ void turnCCW()
 // Should only be used for autonomy, but it could probably be used elsewhere
 void Stop()
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
+        motorList[i]->stopTurn();
         motorList[i]->sendDuty(0.0);
+    }
 }
 
 // Enables or disables brake mode for all motors
@@ -441,4 +444,17 @@ void goBackwards(float speed)
     float temp = (-1) * speed;
     for (int i = 0; i < 4; i++ )
         motorList[i]->setDuty(temp);
+}
+
+void driveMeters(float meters) {
+    // Wheel diameter is 7.73 inches
+    const float wheelCircumference = 7.73 * 2.54 * M_PI / 100;  // cm
+    const float degrees = (meters / wheelCircumference) * 360.0;
+
+    // Left motors
+    Motor1.turnByDeg(degrees);
+    Motor2.turnByDeg(degrees);
+    // Right motors
+    Motor3.turnByDeg(-1 * degrees);
+    Motor4.turnByDeg(-1 * degrees);
 }
