@@ -447,9 +447,7 @@ void goBackwards(float speed)
 }
 
 void driveMeters(float meters) {
-    // Wheel diameter is 7.73 inches
-    const float wheelCircumference = 7.73 * 2.54 * M_PI / 100;  // cm
-    const float degrees = (meters / wheelCircumference) * 360.0;
+    const float degrees = (meters / WHEEL_CIRCUMFERENCE) * 360.0;
 
     // Left motors
     Motor1.turnByDeg(degrees);
