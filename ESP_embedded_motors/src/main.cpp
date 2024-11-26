@@ -208,7 +208,7 @@ void loop()
             CAN_identifySparkMax(2, Can0);
         }
         else if (args[0] == "speed" && checkArgs(args, 1)) {
-            CAN_sendSpeed(MOTOR_ID_BL, args[1].toFloat(), Can0);
+            CAN_sendVelocity(MOTOR_ID_BL, args[1].toFloat(), Can0);
         }
         else if (args[0] == "newduty") {
             Serial.print("Setting duty cycle ");
@@ -322,19 +322,47 @@ void loop()
         uint8_t deviceId = msgId & 0x3F;
         uint32_t apiId = (msgId >> 6) & 0x3FF;
 
-        if (apiId == 0x61) {
+        if (apiId == 0x61) {  // Status 1
             for (int i = 0; i < 4; i++) {
                 if (deviceId == motorList[i]->getID()) {
                     motorList[i]->parseStatus1(rxFrame.data);
                     break;
                 }
             }
-        } else if (apiId == 0x62) {
+        } else if (apiId == 0x62) {  // Status 2
             for (int i = 0; i < 4; i++) {
                 if (deviceId == motorList[i]->getID()) {
                     motorList[i]->parseStatus2(rxFrame.data);
                     break;
                 }
+            }
+        } else if ((apiId & 0x300) == 0x300) {  // Parameter
+            Serial.print("Got parameter ");
+            Serial.print(apiId & 0xFF, HEX);
+            Serial.print(" for: ");
+            for (int i = 0; i < 4; i++) {
+                if (deviceId == motorList[i]->getID()) {
+                    Serial.print(i);
+                }
+            }
+            Serial.print(" (type ");
+            Serial.print(rxFrame.data[4]);
+            Serial.print("): ");
+            //  uint32_t
+            if (rxFrame.data[4] == static_cast<uint8_t>(sparkMax_ParameterType::kUint32)) {
+                uint32_t val = (rxFrame.data[3] << 24) | (rxFrame.data[2] << 16) | (rxFrame.data[1] << 8) | rxFrame.data[0];
+                Serial.println(val);
+            //  int32_t
+            } else if (rxFrame.data[4] == static_cast<uint8_t>(sparkMax_ParameterType::kInt32)) {
+                int32_t val = (rxFrame.data[3] << 24) | (rxFrame.data[2] << 16) | (rxFrame.data[1] << 8) | rxFrame.data[0];
+                Serial.println(val);  // Not sure if this one is actually right, copilot wrote it
+            // float
+            } else if (rxFrame.data[4] == static_cast<uint8_t>(sparkMax_ParameterType::kFloat32)) {
+                uint32_t val = (rxFrame.data[3] << 24) | (rxFrame.data[2] << 16) | (rxFrame.data[1] << 8) | rxFrame.data[0];
+                Serial.println(*reinterpret_cast<float*>(&val));
+            // bool
+            } else if (rxFrame.data[4] == static_cast<uint8_t>(sparkMax_ParameterType::kBool)) {
+                Serial.println(rxFrame.data[0] ? "True" : "False");
             }
         }
 
@@ -373,13 +401,15 @@ void loop()
         Serial.print(Motor2.status1.busVoltage);
         Serial.print(" V; ");
         Serial.print(Motor2.status1.outputCurrent);
-        Serial.println(" A");
+        Serial.print(" A; ");
+        Serial.print(Motor2.status1.sensorVelocity);
+        Serial.println(" RPM");
         
         // Status 2
         Serial.print(millis() - Motor2.status2.timestamp);
         Serial.print(" ms ago: ");
         Serial.print(Motor2.status2.sensorPosition);
-        Serial.println(" position");
+        Serial.println(" rotations");
     }
 #endif
 }
