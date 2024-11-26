@@ -21,10 +21,10 @@ using namespace std;
 AstraCAN Can0;
 
 // AstraMotors(AstraCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
-AstraMotors Motor1(&Can0, MOTOR_ID_FL, CTRL_DUTYCYCLE, false, 1000, 1.0);  // Front Left
-AstraMotors Motor2(&Can0, MOTOR_ID_BL, CTRL_DUTYCYCLE, false, 1000, 1.0);  // Back Left
-AstraMotors Motor3(&Can0, MOTOR_ID_FR, CTRL_DUTYCYCLE, true, 1000, 1.0);   // Front Right
-AstraMotors Motor4(&Can0, MOTOR_ID_BR, CTRL_DUTYCYCLE, true, 1000, 1.0);   // Back Right
+AstraMotors Motor1(&Can0, MOTOR_ID_FL, sparkMax_ctrlType::kDutyCycle, false, 1000, 1.0);  // Front Left
+AstraMotors Motor2(&Can0, MOTOR_ID_BL, sparkMax_ctrlType::kDutyCycle, false, 1000, 1.0);  // Back Left
+AstraMotors Motor3(&Can0, MOTOR_ID_FR, sparkMax_ctrlType::kDutyCycle, true, 1000, 1.0);   // Front Right
+AstraMotors Motor4(&Can0, MOTOR_ID_BR, sparkMax_ctrlType::kDutyCycle, true, 1000, 1.0);   // Back Right
 
 AstraMotors* motorList[4] = {&Motor1, &Motor2, &Motor3, &Motor4};  //Left motors first, right motors second
 
