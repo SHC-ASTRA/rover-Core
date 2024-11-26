@@ -401,6 +401,20 @@ void safety_timeout()
     if (millis() - lastCtrlCmd > 2000)  // if no control commands are received for 2 seconds
     {
         lastCtrlCmd = millis();
+
+        // Only ignore safety timeout if all motors are rotating
+        bool allRotating = true;
+        for (int i = 0; i < 4; i++)
+        {
+            if (!motorList[i]->isRotToPos())
+            {
+                allRotating = false;
+                break;
+            }
+        }
+        if (allRotating)
+            return;
+
         COMMS_UART.println("No Control, Safety Timeout");
         Stop();
     }
