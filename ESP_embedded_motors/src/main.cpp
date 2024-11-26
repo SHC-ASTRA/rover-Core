@@ -50,6 +50,7 @@ void goBackwards(float speed);
 void loopHeartbeats();
 void safety_timeout();
 void driveMeters(float meters);
+float getDriveSpeed();
 
 
 //--------//
@@ -460,4 +461,14 @@ void driveMeters(float meters) {
     // Right motors
     Motor3.turnByDeg(-1 * degrees);
     Motor4.turnByDeg(-1 * degrees);
+}
+
+float getDriveSpeed() {
+    float sum;
+    for (int i = 0; i < 4; i++) {
+        sum += abs(motorList[i]->status1.sensorVelocity);
+    }
+    const float avgSpeed = sum / 4;  // RPM
+    const float gearBox = 64;  // 64:1 for testbed
+    return (avgSpeed / gearBox) * WHEEL_CIRCUMFERENCE / 60;  // meters per second
 }
