@@ -362,21 +362,21 @@ void loop()
     }
 
 #if defined(DEBUG)
-    if (millis() - lastMotorStatus > 2000) {
+    if (millis() - lastMotorStatus > 500) {
         lastMotorStatus = millis();
 
         // Status 1
-        Serial.print(millis() - Motor1.status1.timestamp);
+        Serial.print(millis() - Motor2.status1.timestamp);
         Serial.print(" ms ago: ");
-        Serial.print(Motor1.status1.motorTemperature);
+        Serial.print(Motor2.status1.motorTemperature);
         Serial.print(" *C; ");
-        Serial.print(Motor1.status1.busVoltage);
+        Serial.print(Motor2.status1.busVoltage);
         Serial.print(" V; ");
-        Serial.print(Motor1.status1.outputCurrent);
+        Serial.print(Motor2.status1.outputCurrent);
         Serial.println(" A");
         
         // Status 2
-        Serial.print(millis() - Motor2.status1.timestamp);
+        Serial.print(millis() - Motor2.status2.timestamp);
         Serial.print(" ms ago: ");
         Serial.print(Motor2.status2.sensorPosition);
         Serial.println(" position");
