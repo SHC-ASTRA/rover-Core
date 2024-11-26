@@ -184,7 +184,7 @@ void loop()
 #ifdef DEBUG
         Serial.println(command);
 #endif
-        String prevCommand;
+        static String prevCommand;
 
         std::vector<String> args = {}; 
         parseInput(command, args);
@@ -241,16 +241,20 @@ void loop()
             {
                 prevCommand = command;
 
-                if (checkArgs(args, 2)) 
+                if (checkArgs(args, 2))
                 {
                     motorList[0]->setDuty(args[1].toFloat());
                     motorList[1]->setDuty(args[1].toFloat());
 
                     motorList[2]->setDuty(args[2].toFloat());
                     motorList[3]->setDuty(args[2].toFloat());
-                } else {
-                    for (int i = 0; i < 4; i++)
-                        motorList[i]->setDuty(args[1].toFloat());
+                } else if (checkArgs(args, 1))
+                {
+                    motorList[0]->setDuty(args[1].toFloat());
+                    motorList[1]->setDuty(args[1].toFloat());
+
+                    motorList[2]->setDuty(-1 * args[1].toFloat());
+                    motorList[3]->setDuty(-1 * args[1].toFloat());
                 }
             }
         }
