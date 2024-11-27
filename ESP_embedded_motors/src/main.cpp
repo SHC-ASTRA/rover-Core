@@ -337,6 +337,9 @@ void loop()
                 }
             }
         } else if ((apiId & 0x300) == 0x300) {  // Parameter
+#ifdef DEBUG_STATUS
+            printREVFrame(rxFrame);
+#endif
             Serial.print("Got parameter ");
             Serial.print(apiId & 0xFF, HEX);
             Serial.print(" for: ");
@@ -369,22 +372,7 @@ void loop()
 #if defined(DEBUG_STATUS)
         // Log message if it seems interesting
         if (apiId == 0x99 || apiId == 0x60 || apiId == 0x61 || apiId == 0x62 || apiId == 0x63 || apiId == 0x64) {
-            Serial.print(apiId, HEX);
-            Serial.print(" from ");
-            Serial.print(deviceId);
-            // Message data:
-            if (rxFrame.data_length_code == 0)
-                Serial.print(" - no data.");
-            else {
-                Serial.print(" - data: (");
-                Serial.print(rxFrame.data_length_code);
-                Serial.print(" B) ");
-                for (int i = 0; i < rxFrame.data_length_code; i++) {
-                    Serial.print(rxFrame.data[i], HEX);
-                    Serial.print(" ");
-                }
-            }
-            Serial.println();
+            printREVFrame(rxFrame);
         }
 #endif
     }
