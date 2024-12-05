@@ -1,8 +1,8 @@
 /**
  * @file AstraWheelBase.cpp
  * @author David Sharpe (ds0196@uah.edu)
- * @brief 
- * 
+ * @brief
+ *
  */
 
 #include "AstraWheelBase.h"
@@ -86,7 +86,7 @@ float AstraWheelBase::getDriveSpeed() {
     for (int i = 0; i < 4; i++) {
         sum += abs(motorList[i]->status1.sensorVelocity);
     }
-    const float avgSpeed = sum / 4;  // RPM
-    const float gearBox = motorList[0]->getGearBox();  // 64:1 for testbed
-    return (avgSpeed / gearBox) * WHEEL_CIRCUMFERENCE / 60;  // meters per second
+    const float avgSpeed = sum / 4;                          // RPM
+    const float gearBox = motorList[0]->getGearBox();        // Ratio (ex: 64:1)
+    return (avgSpeed / gearBox) * WHEEL_CIRCUMFERENCE / 60;  // Meters per second
 }
