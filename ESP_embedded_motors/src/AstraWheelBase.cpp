@@ -27,6 +27,7 @@ void AstraWheelBase::setDuty(float dutyLeft, float dutyRight) {
     motorList[3]->setDuty(dutyRight);
 }
 
+
 void AstraWheelBase::setSpeed(float speed) {
     motorList[0]->setSpeed(speed);
     motorList[1]->setSpeed(speed);
@@ -41,6 +42,7 @@ void AstraWheelBase::setSpeed(float speedLeft, float speedRight) {
     motorList[3]->setSpeed(speedRight);
 }
 
+
 void AstraWheelBase::goForwards(float duty) {
     setDuty(duty);
 }
@@ -50,28 +52,23 @@ void AstraWheelBase::goBackwards(float duty) {
 }
 
 void AstraWheelBase::turnCW(float duty) {
-    motorList[0]->setDuty(duty);
-    motorList[1]->setDuty(duty);
-    motorList[2]->setDuty(duty);
-    motorList[3]->setDuty(duty);
+    setDuty(duty, duty);
 }
 
 void AstraWheelBase::turnCCW(float duty) {
-    motorList[0]->setDuty(duty * -1);
-    motorList[1]->setDuty(duty * -1);
-    motorList[2]->setDuty(duty * -1);
-    motorList[3]->setDuty(duty * -1);
+    setDuty(duty * -1, duty * -1);
 }
 
-void AstraWheelBase::Stop() {
+void AstraWheelBase::stop() {
     for (int i = 0; i < 4; i++)
         motorList[i]->stop();
 }
 
-void AstraWheelBase::Brake(bool enable) {
+void AstraWheelBase::setBrake(bool enable) {
     for (int i = 0; i < 4; i++)
         motorList[i]->setBrake(enable);
 }
+
 
 void AstraWheelBase::driveMeters(float meters) {
     const float degrees = (meters / WHEEL_CIRCUMFERENCE) * 360.0;
@@ -90,6 +87,6 @@ float AstraWheelBase::getDriveSpeed() {
         sum += abs(motorList[i]->status1.sensorVelocity);
     }
     const float avgSpeed = sum / 4;  // RPM
-    const float gearBox = 64;  // 64:1 for testbed
+    const float gearBox = motorList[0]->getGearBox();  // 64:1 for testbed
     return (avgSpeed / gearBox) * WHEEL_CIRCUMFERENCE / 60;  // meters per second
 }

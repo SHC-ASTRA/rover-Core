@@ -28,9 +28,8 @@ class AstraWheelBase {
         void goBackwards(float duty);
         void turnCW(float duty);
         void turnCCW(float duty);
-
-        void Stop();
-        void Brake(bool enable);
+        void stop();
+        void setBrake(bool enable);
 
         void driveMeters(float meters);
         float getDriveSpeed();
