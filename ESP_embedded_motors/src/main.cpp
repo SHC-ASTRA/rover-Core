@@ -1,6 +1,6 @@
 /**
  * @file Main.cpp
- * @author Charles Marmann (something@uah.edu)
+ * @author Charles Marmann (cmm0077@uah.edu)
  * @author David Sharpe (ds0196@uah.edu)
  * @brief Controls REV motors on ASTRA's Core submodule
  *
