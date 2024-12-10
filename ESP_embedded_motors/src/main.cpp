@@ -322,7 +322,14 @@ void loop()
         uint8_t deviceId = msgId & 0x3F;
         uint32_t apiId = (msgId >> 6) & 0x3FF;
 
-        if (apiId == 0x61) {  // Status 1
+        if (apiId == 0x60) {
+            for (int i = 0; i < 4; i++) {
+                if (deviceId == motorList[i]->getID()) {
+                    motorList[i]->parseStatus0(rxFrame.data);
+                    break;
+                }
+            }
+        } else if (apiId == 0x61) {  // Status 1
             for (int i = 0; i < 4; i++) {
                 if (deviceId == motorList[i]->getID()) {
                     motorList[i]->parseStatus1(rxFrame.data);
