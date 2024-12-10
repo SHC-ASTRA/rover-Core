@@ -1,61 +1,68 @@
-// Includes
+/**
+ * @file Main.cpp
+ * @author Charles Marmann (something@uah.edu)
+ * @author David Sharpe (ds0196@uah.edu)
+ * @brief Controls REV motors on ASTRA's Core submodule
+ *
+ */
+
+//------------//
+//  Includes  //
+//------------//
+
 #include <Arduino.h>
+
 #include <cmath>
-// Our own resources
-#if defined(TESTBED)
-#   include "project/TESTBED.h"
-#else
-#   include "project/CORE.h"
-#endif
+
 #include "AstraMisc.h"
 #include "AstraMotors.h"
-#ifdef OLD_ASTRACAN_ENABLE
-#   include "AstraCAN.h"
+
+// Project header
+#if defined(TESTBED)
+#    include "project/TESTBED.h"
 #else
-#   include "AstraREVCAN.h"
+#    include "project/CORE.h"
 #endif
 
-using namespace std;
+// REV CAN
+#ifdef OLD_ASTRACAN_ENABLE
+#    include "AstraCAN.h"
+#else
+#    include "AstraREVCAN.h"
+#endif
+
+
+//------------//
+//  Settings  //
+//------------//
+
+// #define DEBUG_STATUS
+
+#ifdef DEBUG
+#    define COMMS_UART Serial
+#endif
+
+
+//---------------------//
+//  Component classes  //
+//---------------------//
 
 // Setting up for CAN0 line
 AstraCAN Can0;
 
-// AstraMotors(AstraCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float setMaxDuty)
+// AstraMotors(AstraCAN* setCanObject, int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float
+// setMaxDuty)
 AstraMotors Motor1(&Can0, MOTOR_ID_FL, sparkMax_ctrlType::kDutyCycle, false, 1000, 1.0);  // Front Left
 AstraMotors Motor2(&Can0, MOTOR_ID_BL, sparkMax_ctrlType::kDutyCycle, false, 1000, 1.0);  // Back Left
 AstraMotors Motor3(&Can0, MOTOR_ID_FR, sparkMax_ctrlType::kDutyCycle, true, 1000, 1.0);   // Front Right
 AstraMotors Motor4(&Can0, MOTOR_ID_BR, sparkMax_ctrlType::kDutyCycle, true, 1000, 1.0);   // Back Right
 
-AstraMotors* motorList[4] = {&Motor1, &Motor2, &Motor3, &Motor4};  //Left motors first, right motors second
-
-// Use Serial when using directly with Laptop, use Serial1 when using over UART with main ESP32
-// Purposefully override TESTBED.h for motor mcu for testing
-#ifdef DEBUG
-#   define COMMS_UART Serial
-#endif
-
-// #define DEBUG_STATUS
+AstraMotors* motorList[4] = {&Motor1, &Motor2, &Motor3, &Motor4};  // Left motors first, right motors second
 
 
-//------------//
-// Prototypes //
-//------------//
-
-void turnCW();
-void turnCCW();
-void Stop();
-void Brake(bool enable);
-void goForwards(float speed);
-void goBackwards(float speed);
-void loopHeartbeats();
-void safety_timeout();
-void driveMeters(float meters);
-float getDriveSpeed();
-
-
-//--------//
-// Timing //
-//--------//
+//----------//
+//  Timing  //
+//----------//
 
 unsigned long lastMotorStatus = 0;
 unsigned long lastAccel;
@@ -70,19 +77,60 @@ bool ledState = false;
 String feedback;
 
 
-//-------//
-// Setup //
-//-------//
+//--------------//
+//  Prototypes  //
+//--------------//
 
-void setup() 
-{
+void turnCW();
+void turnCCW();
+void Stop();
+void Brake(bool enable);
+void goForwards(float speed);
+void goBackwards(float speed);
+void loopHeartbeats();
+void safety_timeout();
+void driveMeters(float meters);
+float getDriveSpeed();
+
+
+//------------------------------------------------------------------------------------------------//
+//  Setup
+//------------------------------------------------------------------------------------------------//
+//
+//
+//------------------------------------------------//
+//                                                //
+//      ////////    //////////    //////////      //
+//    //                //        //        //    //
+//    //                //        //        //    //
+//      //////          //        //////////      //
+//            //        //        //              //
+//            //        //        //              //
+//    ////////          //        //              //
+//                                                //
+//------------------------------------------------//
+void setup() {
+    //--------//
+    //  Pins  //
+    //--------//
+
     pinMode(LED_BUILTIN, OUTPUT);
-    Serial1.begin(SERIAL_BAUD);
-    Serial.begin(SERIAL_BAUD);
     digitalWrite(LED_BUILTIN, HIGH);
 
-    delay(2000);
-    digitalWrite(LED_BUILTIN, LOW);
+    //------------------//
+    //  Communications  //
+    //------------------//
+
+    Serial.begin(SERIAL_BAUD);
+    Serial1.begin(COMMS_UART_BAUD);
+
+    //-----------//
+    //  Sensors  //
+    //-----------//
+
+    //--------------------//
+    //  Misc. Components  //
+    //--------------------//
 
     // Setup CAN
     if (Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
@@ -96,9 +144,9 @@ void setup()
 }
 
 
-//------------//
-// Begin Loop //
-//------------//
+//------------------------------------------------------------------------------------------------//
+//  Loop
+//------------------------------------------------------------------------------------------------//
 //
 //
 //-------------------------------------------------//
@@ -112,9 +160,11 @@ void setup()
 //    /////////      //////////    //              //
 //                                                 //
 //-------------------------------------------------//
+void loop() {
+    //----------//
+    //  Timers  //
+    //----------//
 
-void loop() 
-{
     // Blink the LED
     if (millis() - lastBlink >= 1000) 
     {
@@ -126,8 +176,7 @@ void loop()
             digitalWrite(LED_BUILTIN, LOW);
     }
 
-    // Every 50 milliseconds, update the speed for all motors
-    // Accelerate the motors
+    // Accelerate motors; update the speed for all motors
     if (millis() - lastAccel >= 50)
     {
         lastAccel = millis();
@@ -137,11 +186,8 @@ void loop()
         }
     }
 
-    //----------------------------------//
-    // send heartbeat                   //
-    //----------------------------------//
-
-    if ((millis()-lastFeedback)>=3)
+    // Heartbeat for REV motors
+    if (millis() - lastFeedback >= 3)
     {
         sendHeartbeat(Can0, heartBeatNum);
         lastFeedback = millis();
@@ -152,167 +198,38 @@ void loop()
         }
     }
 
+    // Safety timeout
     safety_timeout();
 
+    // Motor status debug printout
+#if defined(DEBUG)
+    if (millis() - lastMotorStatus > 500) {
+        lastMotorStatus = millis();
 
-    //------------------//
-    // Command Receiving //
-    //------------------//
-    //
-    //-------------------------------------------------------//
-    //                                                       //
-    //      /////////    //\\        ////    //////////      //
-    //    //             //  \\    //  //    //        //    //
-    //    //             //    \\//    //    //        //    //
-    //    //             //            //    //        //    //
-    //    //             //            //    //        //    //
-    //    //             //            //    //        //    //
-    //      /////////    //            //    //////////      //
-    //                                                       //
-    //-------------------------------------------------------//
-    //
-    // The giant CMD helps with finding this place
-    //
-    // Commands will be received as a comma separated value string
-    // Ex: "ctrl,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
-    // commands will be deliminated by "," and put into vector<String> args
-
-    if (COMMS_UART.available()) 
-    {
-        String command = COMMS_UART.readStringUntil('\n');  // Command is equal to a line in the Serial1
-        command.trim();
-#ifdef DEBUG
-        Serial.println(command);
-#endif
-        static String prevCommand;
-
-        std::vector<String> args = {}; 
-        parseInput(command, args);
-
-
-        if (args[0] == "ping") 
-        {
-#ifndef DEBUG
-            COMMS_UART.println("pong");
-#else
-            Serial.println("pong");
-            Serial1.println("pong");
-#endif
-        } 
-        else if (args[0] == "time") 
-        {
-            COMMS_UART.println(millis());
-        }
-#if defined(DEBUG) && !defined(OLD_ASTRACAN_ENABLE)
-        else if (args[0] == "id") {
-            CAN_identifySparkMax(2, Can0);
-        }
-        else if (args[0] == "speed" && checkArgs(args, 1)) {
-            CAN_sendVelocity(MOTOR_ID_BL, args[1].toFloat(), Can0);
-        }
-        else if (args[0] == "newduty") {
-            Serial.print("Setting duty cycle ");
-            Serial.println(args[1].toFloat());
-            CAN_sendDutyCycle(1, args[1].toFloat(), Can0);
-            CAN_sendDutyCycle(2, args[1].toFloat(), Can0);
-            CAN_sendDutyCycle(3, args[1].toFloat(), Can0);
-            CAN_sendDutyCycle(4, args[1].toFloat(), Can0);
-        }
-        else if (args[0] == "stop") {
-            Serial.println("Stopping all motors");
-            for (int i = 0; i < 4; i++)
-            {
-                CAN_sendDutyCycle(i, 0, Can0);
-                Stop();
-            }
-        }
-        else if (args[0] == "turnby") {
-            Motor2.turnByDeg(args[1].toFloat());
-        }
-        else if (args[0] == "forward") {
-            driveMeters(args[1].toFloat());
-        }
-#endif
-
-        else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
-        {   
-            lastCtrlCmd = millis();
-            if (command != prevCommand)
-            {
-                prevCommand = command;
-
-                if (checkArgs(args, 2))
-                {
-                    motorList[0]->setDuty(args[1].toFloat());
-                    motorList[1]->setDuty(args[1].toFloat());
-
-                    motorList[2]->setDuty(args[2].toFloat());
-                    motorList[3]->setDuty(args[2].toFloat());
-                } else if (checkArgs(args, 1))
-                {
-                    motorList[0]->setDuty(args[1].toFloat());
-                    motorList[1]->setDuty(args[1].toFloat());
-
-                    motorList[2]->setDuty(-1 * args[1].toFloat());
-                    motorList[3]->setDuty(-1 * args[1].toFloat());
-                }
-            }
-        }
-
-        else if (args[0] == "brake") 
-        {
-            if (args[1] == "on") 
-            {
-                Brake(true);
-#ifdef DEBUG
-                Serial.println("Setting brakemode on.");
-#endif
-            }
-
-            else if (args[1] == "off")
-            {
-                Brake(false);
-#ifdef DEBUG
-                Serial.println("Setting brakemode off.");
-#endif
-            }
-        }
-
-        else if (args[0] == "auto") // Commands for autonomy
-        { 
-            lastCtrlCmd = millis();
-            if (command != prevCommand)
-            {
-                if (args[1] == "forwards") // auto,forwards
-                {  
-                    goForwards(args[2].toFloat());
-                }
-
-                else if (args[1] == "backwards") // auto,backwards
-                { 
-                    goBackwards(args[2].toFloat());
-                }
-
-                else if (args[1] == "TurnCW") // auto,backwards
-                { 
-                    turnCW();
-                }
-
-                else if (args[1] == "TurnCCW") // auto,backwards
-                { 
-                    turnCCW();
-                }
-
-                else if (args[1] == "stop") // auto,stop
-                {  
-                    Stop();
-                }
-            }
-        }
-
+        // Status 1
+        Serial.print(millis() - Motor2.status1.timestamp);
+        Serial.print(" ms ago: ");
+        Serial.print(Motor2.status1.motorTemperature);
+        Serial.print(" *C; ");
+        Serial.print(Motor2.status1.busVoltage);
+        Serial.print(" V; ");
+        Serial.print(Motor2.status1.outputCurrent);
+        Serial.print(" A; ");
+        Serial.print(Motor2.status1.sensorVelocity);
+        Serial.println(" RPM");
+        
+        // Status 2
+        Serial.print(millis() - Motor2.status2.timestamp);
+        Serial.print(" ms ago: ");
+        Serial.print(Motor2.status2.sensorPosition);
+        Serial.println(" rotations");
     }
+#endif
 
-    // Check for incoming CAN messages
+    //-------------//
+    //  CAN Input  //
+    //-------------//
+
     static CanFrame rxFrame;
     if (ESP32Can.readFrame(rxFrame, 1)) {
         // Decode the ID
@@ -414,42 +331,182 @@ void loop()
 #endif
     }
 
-#if defined(DEBUG)
-    if (millis() - lastMotorStatus > 500) {
-        lastMotorStatus = millis();
-
-        // Status 1
-        Serial.print(millis() - Motor2.status1.timestamp);
-        Serial.print(" ms ago: ");
-        Serial.print(Motor2.status1.motorTemperature);
-        Serial.print(" *C; ");
-        Serial.print(Motor2.status1.busVoltage);
-        Serial.print(" V; ");
-        Serial.print(Motor2.status1.outputCurrent);
-        Serial.print(" A; ");
-        Serial.print(Motor2.status1.sensorVelocity);
-        Serial.println(" RPM");
-        
-        // Status 2
-        Serial.print(millis() - Motor2.status2.timestamp);
-        Serial.print(" ms ago: ");
-        Serial.print(Motor2.status2.sensorPosition);
-        Serial.println(" rotations");
-    }
+    //------------------//
+    //  UART/USB Input  //
+    //------------------//
+    //
+    //
+    //-------------------------------------------------------//
+    //                                                       //
+    //      /////////    //\\        ////    //////////      //
+    //    //             //  \\    //  //    //        //    //
+    //    //             //    \\//    //    //        //    //
+    //    //             //            //    //        //    //
+    //    //             //            //    //        //    //
+    //    //             //            //    //        //    //
+    //      /////////    //            //    //////////      //
+    //                                                       //
+    //-------------------------------------------------------//
+    if (COMMS_UART.available()) {
+        String command = COMMS_UART.readStringUntil('\n');
+        command.trim();
+#ifdef DEBUG
+        Serial.println(command);
 #endif
+        static String prevCommand;
+
+        std::vector<String> args = {};
+        parseInput(command, args);
+
+        //--------//
+        //  Misc  //
+        //--------//
+        /**/ if (args[0] == "ping")
+        {
+#ifndef DEBUG
+            COMMS_UART.println("pong");
+#else
+            Serial.println("pong");
+            Serial1.println("pong");
+#endif
+        } 
+        else if (args[0] == "time") 
+        {
+            COMMS_UART.println(millis());
+        }
+
+        //-----------//
+        //  Sensors  //
+        //-----------//
+
+        //----------//
+        //  Motors  //
+        //----------//
+        else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        {   
+            lastCtrlCmd = millis();
+            if (command != prevCommand)
+            {
+                prevCommand = command;
+
+                if (checkArgs(args, 2))
+                {
+                    motorList[0]->setDuty(args[1].toFloat());
+                    motorList[1]->setDuty(args[1].toFloat());
+
+                    motorList[2]->setDuty(args[2].toFloat());
+                    motorList[3]->setDuty(args[2].toFloat());
+                } else if (checkArgs(args, 1))
+                {
+                    motorList[0]->setDuty(args[1].toFloat());
+                    motorList[1]->setDuty(args[1].toFloat());
+
+                    motorList[2]->setDuty(-1 * args[1].toFloat());
+                    motorList[3]->setDuty(-1 * args[1].toFloat());
+                }
+            }
+        }
+
+        else if (args[0] == "brake") 
+        {
+            if (args[1] == "on") 
+            {
+                Brake(true);
+#ifdef DEBUG
+                Serial.println("Setting brakemode on.");
+#endif
+            }
+
+            else if (args[1] == "off")
+            {
+                Brake(false);
+#ifdef DEBUG
+                Serial.println("Setting brakemode off.");
+#endif
+            }
+        }
+
+        else if (args[0] == "auto") // Commands for autonomy
+        { 
+            lastCtrlCmd = millis();
+            if (command != prevCommand)
+            {
+                if (args[1] == "forwards") // auto,forwards
+                {  
+                    goForwards(args[2].toFloat());
+                }
+
+                else if (args[1] == "backwards") // auto,backwards
+                { 
+                    goBackwards(args[2].toFloat());
+                }
+
+                else if (args[1] == "TurnCW") // auto,backwards
+                { 
+                    turnCW();
+                }
+
+                else if (args[1] == "TurnCCW") // auto,backwards
+                { 
+                    turnCCW();
+                }
+
+                else if (args[1] == "stop") // auto,stop
+                {  
+                    Stop();
+                }
+            }
+        }
+#if defined(DEBUG) && !defined(OLD_ASTRACAN_ENABLE)
+        else if (args[0] == "id") {
+            CAN_identifySparkMax(2, Can0);
+        }
+        else if (args[0] == "speed" && checkArgs(args, 1)) {
+            CAN_sendVelocity(MOTOR_ID_BL, args[1].toFloat(), Can0);
+        }
+        else if (args[0] == "newduty") {
+            Serial.print("Setting duty cycle ");
+            Serial.println(args[1].toFloat());
+            CAN_sendDutyCycle(1, args[1].toFloat(), Can0);
+            CAN_sendDutyCycle(2, args[1].toFloat(), Can0);
+            CAN_sendDutyCycle(3, args[1].toFloat(), Can0);
+            CAN_sendDutyCycle(4, args[1].toFloat(), Can0);
+        }
+        else if (args[0] == "stop") {
+            Serial.println("Stopping all motors");
+            for (int i = 0; i < 4; i++)
+            {
+                CAN_sendDutyCycle(i, 0, Can0);
+                Stop();
+            }
+        }
+        else if (args[0] == "turnby") {
+            Motor2.turnByDeg(args[1].toFloat());
+        }
+        else if (args[0] == "forward") {
+            driveMeters(args[1].toFloat());
+        }
+#endif
+    }
 }
 
-//-------------------------------------------------------//
-//                                                       //
-//    ///////////    //\\          //      //////////    //
-//    //             //  \\        //    //              //
-//    //             //    \\      //    //              //
-//    //////         //      \\    //    //              //
-//    //             //        \\  //    //              //
-//    //             //          \\//    //              //
-//    //             //           \//      //////////    //
-//                                                       //
-//-------------------------------------------------------//
+
+//------------------------------------------------------------------------------------------------//
+//  Function definitions
+//------------------------------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------//
+//                                                    //
+//    //////////    //          //      //////////    //
+//    //            //\\        //    //              //
+//    //            //  \\      //    //              //
+//    //////        //    \\    //    //              //
+//    //            //      \\  //    //              //
+//    //            //        \\//    //              //
+//    //            //          //      //////////    //
+//                                                    //
+//----------------------------------------------------//
 
 void safety_timeout()
 {
