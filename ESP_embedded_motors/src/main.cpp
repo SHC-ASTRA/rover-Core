@@ -64,17 +64,13 @@ AstraMotors* motorList[4] = {&Motor1, &Motor2, &Motor3, &Motor4};  // Left motor
 //  Timing  //
 //----------//
 
-unsigned long lastMotorStatus = 0;
-unsigned long lastAccel;
-unsigned long lastDuty;
-unsigned long lastHB;
-unsigned long lastFeedback = 0;
-unsigned long lastCtrlCmd;
-unsigned long clockTimer = millis();
-unsigned long heartBeatNum = 1;
 uint32_t lastBlink = 0;
 bool ledState = false;
-String feedback;
+unsigned long lastAccel = 0;
+unsigned long lastHB = 0;
+int heartBeatNum = 1;
+unsigned long lastCtrlCmd = 0;
+unsigned long lastMotorStatus = 0;
 
 
 //--------------//
@@ -187,10 +183,10 @@ void loop() {
     }
 
     // Heartbeat for REV motors
-    if (millis() - lastFeedback >= 3)
+    if (millis() - lastHB >= 3)
     {
         sendHeartbeat(Can0, heartBeatNum);
-        lastFeedback = millis();
+        lastHB = millis();
         heartBeatNum++;
         if (heartBeatNum > 4)
         {
