@@ -453,6 +453,9 @@ void loop() {
                 }
             }
         }
+        else if (args[0] == "forward") {
+            driveMeters(args[1].toFloat());
+        }
 #if defined(DEBUG) && !defined(OLD_ASTRACAN_ENABLE)
         else if (args[0] == "id") {
             CAN_identifySparkMax(2, Can0);
@@ -478,9 +481,6 @@ void loop() {
         }
         else if (args[0] == "turnby") {
             Motor2.turnByDeg(args[1].toFloat());
-        }
-        else if (args[0] == "forward") {
-            driveMeters(args[1].toFloat());
         }
 #endif
     }
