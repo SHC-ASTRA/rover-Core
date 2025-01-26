@@ -403,6 +403,26 @@ void loop() {
             }
         }
 
+        else if (args[0] = "ctrl_send") {
+            lastCtrlCmd = millis();
+
+            if (checkArgs(args, 2))
+            {
+                motorList[0]->sendDuty(args[1].toFloat());
+                motorList[1]->sendDuty(args[1].toFloat());
+
+                motorList[2]->sendDuty(args[2].toFloat());
+                motorList[3]->sendDuty(args[2].toFloat());
+            } else if (checkArgs(args, 1))
+            {
+                motorList[0]->sendDuty(args[1].toFloat());
+                motorList[1]->sendDuty(args[1].toFloat());
+
+                motorList[2]->sendDuty(-1 * args[1].toFloat());
+                motorList[3]->sendDuty(-1 * args[1].toFloat());
+            }
+        }
+
         else if (args[0] == "brake") 
         {
             if (args[1] == "on") 
