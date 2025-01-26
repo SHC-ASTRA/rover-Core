@@ -272,7 +272,6 @@ void loop()
             if (checkArgs(args, 2))
             {
                 #define JOYSTICK_MAX 1.0
-                #define DUTY_MAX 1.0
 
                 // Inputs
                 float joy_x = args[1].toFloat();
@@ -282,7 +281,7 @@ void loop()
                 float right_motor_duty;
 
                 // Speed rover will drive is distance of joystick away from center
-                float driveSpeed = map(sqrt(joy_x*joy_x + joy_y*joy_y), 0, JOYSTICK_MAX, 0, DUTY_MAX);
+                float driveSpeed = map(sqrt(joy_x*joy_x + joy_y*joy_y), 0, JOYSTICK_MAX, 0, 1);
 
                 // Use positive joy_x by default
 
