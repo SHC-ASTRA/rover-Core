@@ -267,6 +267,43 @@ void loop()
             Serial1.println(command);
         }
 
+        else if (args[0] == "joystick_ctrl")  // Takes X and Y position of controller's joystick
+        {
+            if (checkArgs(args, 2))
+            {
+                #define JOYSTICK_MAX 1.0
+                #define DUTY_MAX 1.0
+
+                // Inputs
+                float joy_x = args[1].toFloat();
+                float joy_y = args[2].toFloat();
+                // Outputs
+                float left_motor_duty;
+                float right_motor_duty;
+
+                // Speed rover will drive is distance of joystick away from center
+                float driveSpeed = map(sqrt(joy_x*joy_x + joy_y*joy_y), 0, JOYSTICK_MAX, 0, DUTY_MAX);
+
+                // Use positive joy_x by default
+
+                left_motor_duty = joy_y >= 0 ? driveSpeed : -1 * driveSpeed;  // Positive forwards, negative backwards
+                right_motor_duty = map(joy_y, -JOYSTICK_MAX, JOYSTICK_MAX, -1 * driveSpeed, driveSpeed);
+
+                // Flip if joy_x negative
+                if (joy_x < 0) {
+                    const float temp = left_motor_duty;
+                    left_motor_duty = right_motor_duty;
+                    right_motor_duty = temp;
+                }
+
+                // Send to motor mcu
+                Serial1.print("ctrl,");
+                Serial1.print(left_motor_duty);
+                Serial1.print(",");
+                Serial1.println(right_motor_duty);
+            }
+        }
+
         else if (args[0] == "speedMultiplier") // Is looking for a command that looks like "ctrl,x" where 0<x<1
         {
             Serial1.println(command);
