@@ -1,10 +1,6 @@
 // Includes
 #include <Arduino.h>
-#include <iostream>
-#include <string>
 #include <cmath>
-#include <cstdlib>
-#include <vector>
 #include <utility/imumaths.h>
 #include <FastLED.h>
 // Our own resources
@@ -14,30 +10,8 @@
 #   include "project/CORE.h"
 #endif
 #include "AstraMisc.h"
-#include "AstraMotors.h"
-#include "AstraCAN.h"
+#include "AstraVicCAN.h"
 #include "AstraSensors.h"
-
-using namespace std;
-
-
-// This will be moved to TESTBED.h, putting here for now
-// so we can just commit to rover-Core for the moment.
-
-// Extended CAN may have a 29-bit ID instead of 11 bits,
-// but using 11 bits for now.
-#define CAN_ID 0b00000000011
-//               09876543210
-
-// Layout command IDs
-// Modeled after current Serial commands for now
-typedef enum {
-    CMD_PING = 0,
-    CMD_TIME = 1,
-    CMD_CTRL = 10,
-    CMD_BRAKE = 11,
-    CMD_AUTO = 12
-} ASTRA_CMD;
 
 
 #define NUM_LEDS 166
@@ -59,7 +33,7 @@ Adafruit_BMP3XX bmp;
 
 SFE_UBLOX_GNSS myGNSS;
 
-Adafruit_BNO055 bno = Adafruit_BNO055();
+Adafruit_BNO055 bno;
 
 
 //Setting up for CAN0 line
@@ -84,14 +58,13 @@ unsigned long lastCtrlCmd;
 
 void setup() 
 {
-
     //-----------------//
     // Initialize Pins //
     //-----------------//
 
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(SERIAL_BAUD);
-    Serial1.begin(SERIAL_BAUD);
+    COMMS_UART.begin(COMMS_UART_BAUD);
     digitalWrite(LED_BUILTIN, HIGH);
 
     delay(2000);
@@ -122,37 +95,19 @@ void setup()
     //--------------------// 
 
     if(!bno.begin()) 
-    {
-        
         Serial.println("!BNO failed to start...");
-        
-    } 
     else 
-    {
         Serial.println("BNO055 Started Successfully");
-    }
 
     if(!bmp.begin_I2C()) 
-    {
-        
         Serial.println("bmp not working");
-        
-    } 
     else 
-    {
         Serial.println("bmp is working");
-    }
 
     if(!myGNSS.begin()) 
-    {
-        
         Serial.println("GPS not working");
-        
-    }
     else 
-    {
         Serial.println("GPS is working");
-    }
 
     initializeBMP(bmp);
 
@@ -426,29 +381,7 @@ void loop()
     static CanFrame rxFrame;
     if(Can0.readFrame(rxFrame, 100)) {
         Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
-        if (rxFrame.identifier == CAN_ID) {
-            // You can do this in C++ right?
-            switch(rxFrame.data[0]) {
-                case CMD_PING:
-                    Serial.println("Received PING command");
-                    break;
-                case CMD_TIME:
-                    Serial.println("Received TIME command");
-                    break;
-                case CMD_CTRL:
-                    Serial.println("Received CTRL command");
-                    break;
-                case CMD_BRAKE:
-                    Serial.println("Received BRAKE command");
-                    break;
-                case CMD_AUTO:
-                    Serial.println("Received AUTO command");
-                    break;
-                default:
-                    Serial.println("Received unknown command");
-                    break;
-            }
-        }
+        // Vehicle CAN code will go here
     }
 
 }
