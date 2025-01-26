@@ -532,16 +532,22 @@ void safety_timeout()
 // Should only be used for autonomy
 void turnCW()
 {
-    for (int i = 0; i < 4; i++)
-        motorList[i]->sendDuty(0.6);
+    float speed = 0.6;
+    motorList[0]->sendDuty(speed);
+    motorList[1]->sendDuty(speed);
+    motorList[2]->sendDuty(-1 * speed);
+    motorList[3]->sendDuty(-1 * speed);
 }
 
 // Bypasses the acceleration to make the rover turn counterclockwise
 // Should only be used for autonomy
 void turnCCW()
 {
-    for (int i = 0; i < 4; i++)
-        motorList[i]->sendDuty(-0.6);
+    float speed = 0.6;
+    motorList[0]->sendDuty(-1 * speed);
+    motorList[1]->sendDuty(-1 * speed);
+    motorList[2]->sendDuty(speed);
+    motorList[3]->sendDuty(speed);
 }
 
 // Bypasses the acceleration to make the rover stop
