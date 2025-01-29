@@ -1,4 +1,15 @@
-// Includes
+/**
+ * @file Main.cpp
+ * @author David Sharpe (ds0196@uah.edu)
+ * @author Charles Marmann (cmm0077@uah.edu)
+ * @brief Core Embedded Main MCU
+ *
+ */
+
+//------------//
+//  Includes  //
+//------------//
+
 #include <Arduino.h>
 #include <cmath>
 #include <utility/imumaths.h>
@@ -14,18 +25,29 @@
 #include "AstraSensors.h"
 
 
-#define NUM_LEDS 166
+//------------//
+//  Settings  //
+//------------//
+
+// Comment out to disable LED blinking
+#define BLINK
+
 // strip 1: 1-40
 // strip 2: 41-82
 // strip 3: 83-124
 // strip 4: 125-166
 // CCW: 1,2,3,4
+#define NUM_LEDS 166
 
+
+//---------------------//
+//  Component classes  //
+//---------------------//
+
+// LED Strip
 int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
-
 CRGB leds[NUM_LEDS];
-
 
 //Sensor declarations
 
@@ -35,11 +57,25 @@ SFE_UBLOX_GNSS myGNSS;
 
 Adafruit_BNO055 bno;
 
-
-//Setting up for CAN0 line
 AstraCAN Can0;
 
-//Prototypes
+
+//----------//
+//  Timing  //
+//----------//
+
+uint32_t lastBlink = 0;
+bool ledState = false;
+
+unsigned long clockTimer = 0;
+unsigned long lastFeedback = 0;
+unsigned long lastCtrlCmd = 0;
+
+
+//--------------//
+//  Prototypes  //
+//--------------//
+
 int findRotationDirection(float current_direction, float target_direction);
 bool autoTurn(int time,float target_direction);
 String outputBno();
@@ -49,50 +85,62 @@ void setLED(int r_val, int b_val, int g_val);
 void safety_timeout();
 
 
+//--------//
+//  Misc  //
+//--------//
+
 String feedback;
 
-unsigned long clockTimer = millis();
-unsigned long lastFeedback;
-unsigned long lastCtrlCmd;
 
-
-void setup() 
-{
-    //-----------------//
-    // Initialize Pins //
-    //-----------------//
+//------------------------------------------------------------------------------------------------//
+//  Setup
+//------------------------------------------------------------------------------------------------//
+//
+//
+//------------------------------------------------//
+//                                                //
+//      ////////    //////////    //////////      //
+//    //                //        //        //    //
+//    //                //        //        //    //
+//      //////          //        //////////      //
+//            //        //        //              //
+//            //        //        //              //
+//    ////////          //        //              //
+//                                                //
+//------------------------------------------------//
+void setup() {
+    //--------//
+    //  Pins  //
+    //--------//
 
     pinMode(LED_BUILTIN, OUTPUT);
+
+
+    //-----------//
+    //  MCU LED  //
+    //-----------//
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+
+
+    //------------------//
+    //  Communications  //
+    //------------------//
+
     Serial.begin(SERIAL_BAUD);
     COMMS_UART.begin(COMMS_UART_BAUD);
-    digitalWrite(LED_BUILTIN, HIGH);
 
-    delay(2000);
-    digitalWrite(LED_BUILTIN, LOW);
-    
-    // Setup CAN
-    if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
-    {
+    if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX))
         Serial.println("CAN bus started!");
-    } 
-    else 
-    {
+    else
         Serial.println("CAN bus failed!");
-    }
-
-    //FastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
-    FastLED.setBrightness(255);
-    for(int i = 0; i < NUM_LEDS; ++i)
-    {
-      leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
-      FastLED.show();
-      delay(10);
-    }
 
 
-    //--------------------//
-    // Initialize Sensors //
-    //--------------------// 
+    //-----------//
+    //  Sensors  //
+    //-----------//
 
     if(!bno.begin()) 
         Serial.println("!BNO failed to start...");
@@ -110,7 +158,6 @@ void setup()
         Serial.println("GPS is working");
 
     initializeBMP(bmp);
-
 
     // Setup for GPS
     myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
@@ -158,13 +205,25 @@ void setup()
         Serial.println(F("Success!"));
     }
 
+
+    //--------------------//
+    //  Misc. Components  //
+    //--------------------//
+
+    FastLED.addLeds<WS2812B, PIN_LED_STRIP, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(255);
+    for(int i = 0; i < NUM_LEDS; ++i)
+    {
+      leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
+      FastLED.show();
+      delay(10);
+    }
 }
 
 
-
-//------------//
-// Begin Loop //
-//------------//
+//------------------------------------------------------------------------------------------------//
+//  Loop
+//------------------------------------------------------------------------------------------------//
 //
 //
 //-------------------------------------------------//
@@ -178,19 +237,20 @@ void setup()
 //    /////////      //////////    //              //
 //                                                 //
 //-------------------------------------------------//
-
-
-void loop() 
-{
-
-    //----------------------------------//
-    // Runs something at a set interval //
-    // Useful for testing               //
-    //----------------------------------//
+void loop() {
+    //----------//
+    //  Timers  //
+    //----------//
+#ifdef BLINK
+    if (millis() - lastBlink > 1000) {
+        lastBlink = millis();
+        ledState = !ledState;
+        digitalWrite(LED_BUILTIN, ledState);
+    }
+#endif
 
     if((millis()-lastFeedback)>=2000)
     {
-
         sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
         bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
         bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
@@ -198,7 +258,6 @@ void loop()
         bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
         bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
         bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
-
         
         //feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
         double gpsData[3];
@@ -208,18 +267,27 @@ void loop()
         pullBNOData(bno, bnoData2);
         
         lastFeedback = millis();
-
     }
-
 
     // Safety timeout if no ctrl command for 2 seconds
     safety_timeout();
 
 
+    //-------------//
+    //  CAN Input  //
+    //-------------//
+
+    static CanFrame rxFrame;
+    if(Can0.readFrame(rxFrame, 100)) {
+        Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
+        // Vehicle CAN code will go here
+    }
+
 
     //------------------//
-    // Command Receiving //
+    //  UART/USB Input  //
     //------------------//
+    //
     //
     //-------------------------------------------------------//
     //                                                       //
@@ -232,38 +300,80 @@ void loop()
     //      /////////    //            //    //////////      //
     //                                                       //
     //-------------------------------------------------------//
-    //
-    // The giant CMD helps with finding this place
-    //
-    // Commands will be received as a comma separated value string
-    // Ex: "ctrl,1,1,1,1" or "speedMultiplier,0.5" or "sendHealthPacket"
-    // The program parses the string so that each piece of data can be used individually
-    // For examples of parsing data you can use the link below
-    // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+    if (Serial.available()) {
+        String input = Serial.readStringUntil('\n');
 
-    if (Serial.available()) 
-    {
-
-        String command = Serial.readStringUntil('\n');
-        command.trim();
+        input.trim();                   // Remove preceding and trailing whitespace
+        std::vector<String> args = {};  // Initialize empty vector to hold separated arguments
+        parseInput(input, args, ',');   // Separate `input` by commas and place into args vector
+        args[0].toLowerCase();          // Make command case-insensitive
+        String command = args[0];       // To make processing code more readable
 
         String prevCommand;
 
-        std::vector<String> args = {};
-        parseInput(command, args, ',');
-
-        if (args[0] == "ping") 
-        {
+        //--------//
+        //  Misc  //
+        //--------//
+        /**/ if (command == "ping") {
             Serial.println("pong");
-        } 
+        }
 
-        else if (args[0] == "time") 
-        {
+        else if (command == "time") {
             Serial.println(millis());
         }
 
-        else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
-        {                          
+        else if (command == "led") {
+            if (args[1] == "on")
+                digitalWrite(LED_BUILTIN, HIGH);
+            else if (args[1] == "off")
+                digitalWrite(LED_BUILTIN, LOW);
+            else if (args[1] == "toggle") {
+                ledState = !ledState;
+                digitalWrite(LED_BUILTIN, ledState);
+            }
+        }
+
+        //-----------//
+        //  Sensors  //
+        //-----------//
+
+        else if (args[0] == "data") // Send data out
+        {
+
+            if(args[1] == "sendGPS") // data,sendGPS
+            {
+                outputGPS();
+            }
+
+            else if(args[1] == "sendIMU") // data,sendIMU
+            {
+                Serial.println(outputBno());
+            }
+
+            else if(args[1] == "sendBMP") // data,sendBMP
+            {
+                Serial.println(outputBmp());
+            }
+
+            else if(args[1] == "everything") // data,everything
+            { 
+                //Serial.println(outputGPS());
+                Serial.println(outputBno());
+                Serial.println(outputBmp());
+            }
+            
+            else if(args[1] == "getOrientation") // data,getOrientation
+            { 
+                Serial.printf("orientation,%f\n", getBNOOrient(bno));
+            }
+        }
+
+        //------------//
+        //  Physical  //
+        //------------//
+
+        else if (args[0] == "ctrl" || args[0] == "ctrl_send" || args[0] == "brake") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
+        {
             Serial1.println(command);
         }
 
@@ -301,16 +411,6 @@ void loop()
                 Serial1.print(",");
                 Serial1.println(right_motor_duty);
             }
-        }
-
-        else if (args[0] == "speedMultiplier") // Is looking for a command that looks like "ctrl,x" where 0<x<1
-        {
-            Serial1.println(command);
-        }
-
-        else if (args[0] == "brake") 
-        {
-            Serial1.println(command);
         }
 
         else if (args[0] == "auto") // Commands for autonomy
@@ -360,81 +460,43 @@ void loop()
 
         }
 
-        else if (args[0] == "data") // Send data out
-        {
-
-            if(args[1] == "sendGPS") // data,sendGPS
-            {
-                outputGPS();
-            }
-
-            else if(args[1] == "sendIMU") // data,sendIMU
-            {
-                Serial.println(outputBno());
-            }
-
-            else if(args[1] == "sendBMP") // data,sendBMP
-            {
-                Serial.println(outputBmp());
-            }
-
-            else if(args[1] == "everything") // data,everything
-            { 
-                //Serial.println(outputGPS());
-                Serial.println(outputBno());
-                Serial.println(outputBmp());
-            }
-            
-            else if(args[1] == "getOrientation") // data,getOrientation
-            { 
-                Serial.printf("orientation,%f\n", getBNOOrient(bno));
-            }
-            
-        } 
-
         else if (args[0] == "led_set") //set LED strip color format: led_set,r,b,g
-        {   
+        {
             for(int i = 0; i < 3; i++)
             {
                 led_rbg[i] = args[i+1].toInt();
             }
             
             setLED(led_rbg[0], led_rbg[1], led_rbg[2]);
-
-        } 
-
+        }
     }
 
     // Relay data from the motor controller back over USB
     if (COMMS_UART.available())
     {
-        String feedback = COMMS_UART.readStringUntil('\n');
-        feedback.trim();
-        Serial.println(feedback);
+        String input = COMMS_UART.readStringUntil('\n');
+        input.trim();
+        Serial.println(input);
     }
-
-    // Wait for incoming CAN message
-    static CanFrame rxFrame;
-    if(Can0.readFrame(rxFrame, 100)) {
-        Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
-        // Vehicle CAN code will go here
-    }
-
 }
 
 
-//-------------------------------------------------------//
-//                                                       //
-//    ///////////    //\\          //      //////////    //
-//    //             //  \\        //    //              //
-//    //             //    \\      //    //              //
-//    //////         //      \\    //    //              //
-//    //             //        \\  //    //              //
-//    //             //          \\//    //              //
-//    //             //           \//      //////////    //
-//                                                       //
-//-------------------------------------------------------//
-
+//------------------------------------------------------------------------------------------------//
+//  Function definitions
+//------------------------------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------//
+//                                                    //
+//    //////////    //          //      //////////    //
+//    //            //\\        //    //              //
+//    //            //  \\      //    //              //
+//    //////        //    \\    //    //              //
+//    //            //      \\  //    //              //
+//    //            //        \\//    //              //
+//    //            //          //      //////////    //
+//                                                    //
+//----------------------------------------------------//
 
 void safety_timeout(){
   if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
