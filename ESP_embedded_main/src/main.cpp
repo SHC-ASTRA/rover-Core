@@ -57,8 +57,6 @@ SFE_UBLOX_GNSS myGNSS;
 
 Adafruit_BNO055 bno;
 
-AstraCAN Can0;
-
 
 //----------//
 //  Timing  //
@@ -132,7 +130,7 @@ void setup() {
     Serial.begin(SERIAL_BAUD);
     COMMS_UART.begin(COMMS_UART_BAUD);
 
-    if(Can0.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX))
+    if(ESP32Can.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX))
         Serial.println("CAN bus started!");
     else
         Serial.println("CAN bus failed!");
@@ -278,7 +276,7 @@ void loop() {
     //-------------//
 
     static CanFrame rxFrame;
-    if(Can0.readFrame(rxFrame, 100)) {
+    if(ESP32Can.readFrame(rxFrame, 100)) {
         Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
         // Vehicle CAN code will go here
     }
