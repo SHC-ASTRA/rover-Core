@@ -275,11 +275,13 @@ void loop() {
     //  CAN Input  //
     //-------------//
 
-    static CanFrame rxFrame;
-    if(ESP32Can.readFrame(rxFrame, 100)) {
-        Serial.printf("Received frame: %03X  \r\n", rxFrame.identifier);
-        // Vehicle CAN code will go here
-    }
+    //if(vicCAN.read()) {
+    //    Serial.println("Received frame");
+        
+    //    /**/ if (cmdID == CMD::PING) {
+    //        vicCAN.respond(1);
+    //    }
+    //}
 
 
     //------------------//
