@@ -277,16 +277,15 @@ void loop() {
 
     if(vicCAN.readCan()) {
         const uint8_t command = vicCAN.getCmdId();
-        const CanDataType dataType = vicCAN.getDataType();
-        static std::vector<float> canData;
+        static std::vector<double> canData;
+        vicCAN.parseData(canData);
         Serial.println("Received frame");
 
         /**/ if (command == CMD_PING) {
-            vicCAN.respond(1);
+            vicCAN.respond(1);  // "pong"
         }
         else if (command == CMD_B_LED) {
-            if (dataType == CanDataType::DT_1i64) {
-                vicCAN.parseData(canData, CanDataType::DT_1i64);
+            if (canData.size() == 1) {
                 if (canData[0] == 0)
                     digitalWrite(LED_BUILTIN, false);
                 if (canData[0] == 1)
