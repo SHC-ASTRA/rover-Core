@@ -385,7 +385,7 @@ void loop() {
 
         else if (args[0] == "ctrl" || args[0] == "ctrl_send" || args[0] == "brake") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {
-            Serial1.println(command);
+            Serial1.println(input);
         }
 
         else if (args[0] == "joystick_ctrl")  // Takes X and Y position of controller's joystick
@@ -450,17 +450,17 @@ void loop() {
 
                 else if(args[1] == "forwards") // auto,forwards
                 {  
-                    Serial1.println(command);
+                    Serial1.println(input);
                 }
 
                 else if(args[1] == "backwards") // auto,backwards
                 { 
-                    Serial1.println(command);
+                    Serial1.println(input);
                 }
 
                 else if(args[1] == "stop") // auto,stop
                 {  
-                    Serial1.println(command);
+                    Serial1.println(input);
                 }
 
             }
