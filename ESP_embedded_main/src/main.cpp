@@ -282,7 +282,7 @@ void loop() {
         Serial.println("Received frame");
 
         /**/ if (command == CMD_PING) {
-            vicCAN.respond(1);  // "pong"
+            // vicCAN.respond(1);  // "pong"
         }
         else if (command == CMD_B_LED) {
             if (canData.size() == 1) {
