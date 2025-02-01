@@ -403,7 +403,7 @@ void loop() {
             }
         }
 
-        else if (args[0] = "ctrl_send") {
+        else if (args[0] == "ctrl_send") {
             lastCtrlCmd = millis();
 
             if (checkArgs(args, 2))

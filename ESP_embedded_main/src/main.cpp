@@ -45,7 +45,7 @@
 //---------------------//
 
 // LED Strip
-int led_rbg[3] = {0, 300, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+int led_rbg[3] = {0, 255, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
 CRGB leds[NUM_LEDS];
 
@@ -508,16 +508,6 @@ void loop() {
 //    //            //          //      //////////    //
 //                                                    //
 //----------------------------------------------------//
-
-void safety_timeout(){
-  if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
-  {
-    lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
-
-    Serial1.println("ctrl,0,0");
-    Serial.println("No Control / Safety Timeout");
-  }
-}
 
 
 // Prints the output of the BNO in one line
