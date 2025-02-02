@@ -584,7 +584,7 @@ bool autoTurn(int time, float target_direction)
             }
             else
             {
-                Serial1.println("auto,TurnCW");
+                Serial1.println("auto,TurnCCW");
             }
 
         }
