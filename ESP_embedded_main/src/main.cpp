@@ -279,10 +279,24 @@ void loop() {
         const uint8_t commandID = vicCAN.getCmdId();
         static std::vector<double> canData;
         vicCAN.parseData(canData);
-        Serial.println("Received frame");
+
+        Serial.print("VicCAN: ");
+        Serial.print(commandID);
+        Serial.print("; ");
+        if (canData.size() > 0) {
+            for (const double& data : canData) {
+                Serial.print(data);
+                Serial.print(", ");
+            }
+        }
+        Serial.println();
+
+
+        // Misc
 
         /**/ if (commandID == CMD_PING) {
             vicCAN.respond(1);  // "pong"
+            Serial.println("Received ping over CAN");
         }
         else if (commandID == CMD_B_LED) {
             if (canData.size() == 1) {
@@ -290,6 +304,34 @@ void loop() {
                     digitalWrite(LED_BUILTIN, false);
                 if (canData[0] == 1)
                     digitalWrite(LED_BUILTIN, true);
+            }
+        }
+
+        // REV
+
+        else if (commandID == CMD_REV_STOP) {
+            COMMS_UART.println("ctrl,stop");
+        }
+        else if (commandID == CMD_REV_IDENTIFY) {
+            if (canData.size() == 1) {
+                COMMS_UART.print("rev_id,");
+                COMMS_UART.println(canData[0]);
+            }
+        }
+        else if (commandID == CMD_REV_IDLE_MODE) {
+            if (canData.size() == 1) {
+                if (canData[0] == 0)
+                    COMMS_UART.println("brake,on");
+                else if (canData[0] == 1)
+                    COMMS_UART.println("brake,off");
+            }
+        }
+        else if (commandID == CMD_REV_SET_DUTY) {
+            if (canData.size() == 2) {
+                COMMS_UART.print("ctrl,");
+                COMMS_UART.print(canData[0]);
+                COMMS_UART.print(",");
+                COMMS_UART.println(canData[1]);
             }
         }
     }
