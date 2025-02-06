@@ -216,6 +216,8 @@ void setup() {
       FastLED.show();
       delay(10);
     }
+
+    vicCAN.relayOn();
 }
 
 
@@ -384,6 +386,10 @@ void loop() {
                 ledState = !ledState;
                 digitalWrite(LED_BUILTIN, ledState);
             }
+        }
+
+        else if (command == "can_relay_tovic") {
+            vicCAN.relayFromSerial(args);
         }
 
         //-----------//
