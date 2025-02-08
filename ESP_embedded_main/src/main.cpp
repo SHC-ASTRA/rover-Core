@@ -322,6 +322,7 @@ void loop() {
         }
         else if (commandID == CMD_REV_IDLE_MODE) {
             if (canData.size() == 1) {
+                lastCtrlCmd = millis();
                 if (canData[0] == 0)
                     COMMS_UART.println("brake,on");
                 else if (canData[0] == 1)
@@ -330,6 +331,7 @@ void loop() {
         }
         else if (commandID == CMD_REV_SET_DUTY) {
             if (canData.size() == 2) {
+                lastCtrlCmd = millis();
                 COMMS_UART.print("ctrl,");
                 COMMS_UART.print(canData[0]);
                 COMMS_UART.print(",");
@@ -433,11 +435,13 @@ void loop() {
 
         else if (args[0] == "ctrl" || args[0] == "ctrl_send" || args[0] == "brake") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {
+            lastCtrlCmd = millis();
             Serial1.println(input);
         }
 
         else if (args[0] == "joystick_ctrl")  // Takes X and Y position of controller's joystick
         {
+            lastCtrlCmd = millis();
             if (checkArgs(args, 2))
             {
                 #define JOYSTICK_MAX 1.0
