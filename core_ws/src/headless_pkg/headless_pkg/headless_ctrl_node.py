@@ -12,7 +12,7 @@ import glob
 
 import importlib
 from std_msgs.msg import String
-from ...ROS2_Interfaces.interfaces_pkg.msg.control import CoreControl
+from interfaces_pkg.msg.control import CoreControl
 
 max_speed = 75 #Max speed as a duty cycle percentage (1-100)
 
