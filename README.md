@@ -68,7 +68,7 @@ The BaseStation computer will need several things.
 
   
 
-## Connecting the GuliKit King Kong Pro 2 Controller (Recommended)
+## Connecting the GuliKit Controller (Recommended)
 
   
 
