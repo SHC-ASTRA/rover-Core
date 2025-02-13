@@ -216,8 +216,6 @@ void setup() {
       FastLED.show();
       delay(10);
     }
-
-    vicCAN.relayOn();
 }
 
 
@@ -392,6 +390,14 @@ void loop() {
 
         else if (command == "can_relay_tovic") {
             vicCAN.relayFromSerial(args);
+        }
+
+        else if (args[0] == "can_relay_mode") {
+            if (args[1] == "on") {
+                vicCAN.relayOn();
+            } else if (args[1] == "off") {
+                vicCAN.relayOff();
+            }
         }
 
         //-----------//
