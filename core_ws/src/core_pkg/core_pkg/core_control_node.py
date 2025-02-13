@@ -12,8 +12,8 @@ import threading
 import glob
 
 from std_msgs.msg import String
-from ros2_interfaces_pkg.msg.control import CoreFeedback
-from ros2_interfaces_pkg.msg.control import CoreControl
+from ros2_interfaces_pkg.msg import CoreFeedback
+from ros2_interfaces_pkg.msg import CoreControl
 
 serial_pub = None
 thread = None

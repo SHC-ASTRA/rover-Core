@@ -1,0 +1,28 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/ros2_interfaces_pkg/local/lib/python3.10/dist-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/mac_headless_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/core_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/interfaces_pkg/local/lib/python3.10/dist-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/headless_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/mac_headless_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/core_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/interfaces_pkg/local/lib/python3.10/dist-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/headless_pkg/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/ros2_interfaces_pkg/local/lib/python3.10/dist-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/mac_headless_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/core_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/interfaces_pkg/local/lib/python3.10/dist-packages",
+        "/home/tristan/astra/core-test/rover-Core/core_ws/install/headless_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/mac_headless_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/core_pkg/lib/python3.10/site-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/interfaces_pkg/local/lib/python3.10/dist-packages",
+        "/home/tristan/astra/rover-Core/core_ws/install/headless_pkg/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
