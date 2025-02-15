@@ -90,11 +90,11 @@ class Headless(Node):
 
         input.max_speed = max_speed
 
-        input.right_stick = self.gamepad.get_axis(4)#right y-axis
+        input.right_stick = round(self.gamepad.get_axis(4),2)#right y-axis
         if self.gamepad.get_axis(5) > 0:
             input.left_stick = input.right_stick
         else:
-            input.left_stick = self.gamepad.get_axis(1)#lext y-axis
+            input.left_stick = round(self.gamepad.get_axis(1),2)#lext y-axis
 
 
 

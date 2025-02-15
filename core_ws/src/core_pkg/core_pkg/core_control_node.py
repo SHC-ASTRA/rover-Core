@@ -137,7 +137,7 @@ class SerialRelay(Node):
 
     def send_controls(self, msg):
         #can_relay_tovic,core,19, left_stick, right_stick 
-        command = "can_relay_tovic,core,19," + msg.left_stick/(msg.max_speed/100.0) + ',' + msg.right_stick/(msg.max_speed/100.0) + '\n'
+        command = "can_relay_tovic,core,19," + str(msg.left_stick/(msg.max_speed/100.0)) + ',' + str(msg.right_stick/(msg.max_speed/100.0)) + '\n'
         #print(f"[Sys] {command}", end="")
         
         self.ser.write(bytes(command, "utf8"))# Send command to MCU
