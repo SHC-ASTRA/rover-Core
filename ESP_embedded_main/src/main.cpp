@@ -45,7 +45,7 @@
 //---------------------//
 
 // LED Strip
-int led_rbg[3] = {0, 255, 0}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
+int led_rbg[3] = {0, 0, 255}; //When using multiple colors, use 255 max, when doing R/B/G use 800-900 for best brightness
 int led_counter = 0;
 CRGB leds[NUM_LEDS];
 
