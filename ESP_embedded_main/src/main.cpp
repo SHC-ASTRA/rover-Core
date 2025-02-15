@@ -159,7 +159,7 @@ void setup() {
 
     // Setup for GPS
     myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
-
+    myGNSS.setNavigationFrequency(30);
     // Create storage for the time pulse parameters
     UBX_CFG_TP5_data_t timePulseParameters;
 
@@ -257,13 +257,18 @@ void loop() {
         bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
         bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
         
-        feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
+        // feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
         double gpsData[3];
         float bnoData2[7];
 
         getPosition(myGNSS, gpsData);
         pullBNOData(bno, bnoData2);
-        
+        Serial.print(String(gpsData[0]));
+        Serial.print(",");
+        Serial.println(String(gpsData[1]));
+        Serial.print(",");
+        Serial.println(bnoData2[6]);
+
         lastFeedback = millis();
     }
 
