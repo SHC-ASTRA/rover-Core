@@ -134,7 +134,7 @@ class SerialRelay(Node):
                 self.ser.close()
             pass
                 
-    def scale_duty(value, max_speed):
+    def scale_duty(self, value, max_speed):
         leftMin = -1
         leftMax = 1
         rightMin = -max_speed
