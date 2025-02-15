@@ -134,10 +134,26 @@ class SerialRelay(Node):
                 self.ser.close()
             pass
                 
+    def scale_duty(value, max_speed):
+        leftMin = -1
+        leftMax = 1
+        rightMin = -max_speed
+        rightMax = max_speed
+
+
+        # Figure out how 'wide' each range is
+        leftSpan = leftMax - leftMin
+        rightSpan = rightMax - rightMin
+
+        # Convert the left range into a 0-1 range (float)
+        valueScaled = float(value - leftMin) / float(leftSpan)
+
+        # Convert the 0-1 range into a value in the right range.
+        return str(rightMin + (valueScaled * rightSpan))
 
     def send_controls(self, msg):
         #can_relay_tovic,core,19, left_stick, right_stick 
-        command = "can_relay_tovic,core,19," + str(msg.left_stick/(msg.max_speed/100.0)) + ',' + str(msg.right_stick/(msg.max_speed/100.0)) + '\n'
+        command = "can_relay_tovic,core,19," + self.scale_duty(msg.left_stick, msg.max_speed) + ',' + self.scale_duty(msg.right_stick, msg.max_speed) + '\n'
         #print(f"[Sys] {command}", end="")
         
         self.ser.write(bytes(command, "utf8"))# Send command to MCU
