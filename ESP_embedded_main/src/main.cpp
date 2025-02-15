@@ -80,7 +80,7 @@ String outputBno();
 String outputBmp();
 String outputGPS();
 void setLED(int r_val, int b_val, int g_val);
-void safety_timeout();
+
 
 
 //--------//
@@ -267,8 +267,6 @@ void loop() {
         lastFeedback = millis();
     }
 
-    // Safety timeout if no ctrl command for 2 seconds
-    safety_timeout();
 
 
     //-------------//
@@ -567,15 +565,6 @@ void loop() {
 //                                                    //
 //----------------------------------------------------//
 
-void safety_timeout(){
-  if(millis() - lastCtrlCmd > 2000)//if no control commands are received for 2 seconds
-  {
-    lastCtrlCmd = millis();//just update the var so this only runs every 2 seconds.
-
-    Serial1.println("ctrl,0,0");
-    Serial.println("No Control / Safety Timeout");
-  }
-}
 
 
 // Prints the output of the BNO in one line
