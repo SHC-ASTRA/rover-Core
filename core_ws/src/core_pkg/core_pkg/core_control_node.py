@@ -137,8 +137,8 @@ class SerialRelay(Node):
     def scale_duty(self, value, max_speed):
         leftMin = -1
         leftMax = 1
-        rightMin = -max_speed
-        rightMax = max_speed
+        rightMin = -max_speed/100.0
+        rightMax = max_speed/100.0
 
 
         # Figure out how 'wide' each range is
