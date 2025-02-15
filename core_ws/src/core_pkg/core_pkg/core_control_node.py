@@ -141,6 +141,7 @@ class SerialRelay(Node):
         #print(f"[Sys] {command}", end="")
         
         self.ser.write(bytes(command, "utf8"))# Send command to MCU
+        self.get_logger().debug(f"wrote: {command}")
         #print(f"[Sys] Relaying: {command}")
 
 
