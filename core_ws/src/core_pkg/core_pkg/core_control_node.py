@@ -120,19 +120,19 @@ class SerialRelay(Node):
             print("Closing serial port.")
             if self.ser.is_open:
                 self.ser.close()
-            self.exit(0)
+            self.exit(1)
         except TypeError as e:
             print(f"TypeError: {e}")
             print("Closing serial port.")
             if self.ser.is_open:
                 self.ser.close()
-            self.exit(0)
+            self.exit(1)
         except Exception as e:
             print(f"Exception: {e}")
             print("Closing serial port.")
             if self.ser.is_open:
                 self.ser.close()
-            self.exit(0)
+            self.exit(1)
                 
     def scale_duty(self, value, max_speed):
         leftMin = -1
