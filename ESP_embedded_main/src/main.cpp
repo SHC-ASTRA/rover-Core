@@ -78,7 +78,7 @@ int findRotationDirection(float current_direction, float target_direction);
 bool autoTurn(int time,float target_direction);
 String outputBno();
 String outputBmp();
-void outputGPS();
+String outputGPS();
 void setLED(int r_val, int b_val, int g_val);
 void safety_timeout();
 
@@ -257,11 +257,11 @@ void loop() {
         bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
         bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
         
-        //feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
+        feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
         double gpsData[3];
         float bnoData2[7];
 
-        //getPosition(myGNSS, gpsData);
+        getPosition(myGNSS, gpsData);
         pullBNOData(bno, bnoData2);
         
         lastFeedback = millis();
@@ -584,24 +584,29 @@ String outputBno()
     float bnoData2[7];
     pullBNOData(bno,bnoData2);
     String output;
+
+    output = "bno," + String(bnoData2[0]) + ',' + String(bnoData2[1]) + ',' + String(bnoData2[2]) + ',' + String(bnoData2[3]) + ',' + String(bnoData2[4]) + ',' + String(bnoData2[5]) + ',' + String(bnoData2[6]);
+
     //sprintf(output,"%f,%f,%f,%f,%f,%f,%f",bnoData2[0],bnoData2[1],bnoData2[2],bnoData2[3],bnoData2[4],bnoData2[5],bnoData2[6]);
     
     return output;
 }
 
 // Prints the output of the GPS in one line
-void outputGPS()
+String outputGPS()
 {
     String output = "null";
     double gpsData[3];
     getPosition(myGNSS, gpsData);
-    Serial.print("gps,");
-    Serial.print(gpsData[0],7);
-    Serial.print(",");
-    Serial.print(gpsData[1],7);
-    Serial.println();
+    // Serial.print("gps,");
+    // Serial.print(gpsData[0],7);
+    // Serial.print(",");
+    // Serial.print(gpsData[1],7);
+    // Serial.println();
+
+    output = "gps," + String(gpsData[0]) + ',' + String(gpsData[1]) + '\n';
     
-    //return output;
+    return output;
 }
 
 // Prints the output of the BMP in one line
@@ -610,6 +615,9 @@ String outputBmp()
     float bmpData[3];
     pullBMPData(bmp, bmpData);
     String output;
+
+    output = "bmp," + String(bmpData[0]) + ',' + String(bmpData[1]) + ',' + String(bmpData[2]);
+
     //sprintf(output, "%f,%f,%f",bmpData[0],bmpData[1],bmpData[2]);
 
     return output;
