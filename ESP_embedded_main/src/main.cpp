@@ -463,12 +463,12 @@ void loop() {
                 float right_motor_duty;
 
                 // Speed rover will drive is distance of joystick away from center
-                float driveSpeed = map(sqrt(joy_x*joy_x + joy_y*joy_y), 0, JOYSTICK_MAX, 0, 1);
+                float driveSpeed = map_d(sqrt(joy_x*joy_x + joy_y*joy_y), 0, JOYSTICK_MAX, 0, 1);
 
                 // Use positive joy_x by default
 
                 left_motor_duty = joy_y >= 0 ? driveSpeed : -1 * driveSpeed;  // Positive forwards, negative backwards
-                right_motor_duty = map(joy_y, -JOYSTICK_MAX, JOYSTICK_MAX, -1 * driveSpeed, driveSpeed);
+                right_motor_duty = map_d(joy_y, -JOYSTICK_MAX, JOYSTICK_MAX, -1 * driveSpeed, driveSpeed);
 
                 // Flip if joy_x negative
                 if (joy_x < 0) {
