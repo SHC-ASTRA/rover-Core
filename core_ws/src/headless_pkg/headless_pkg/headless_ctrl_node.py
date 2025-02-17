@@ -9,10 +9,16 @@ import serial
 import sys
 import threading
 import glob
+import os
 
 import importlib
 from std_msgs.msg import String
 from ros2_interfaces_pkg.msg import CoreControl
+
+
+os.environ["SDL_VIDEODRIVER"] = "dummy"  # Prevents pygame from trying to open a display
+os.environ["SDL_AUDIODRIVER"] = "dummy"  # Force pygame to use a dummy audio driver before pygame.init()
+
 
 max_speed = 75 #Max speed as a duty cycle percentage (1-100)
 
@@ -30,7 +36,7 @@ class Headless(Node):
 
         self.lastMsg = String() #Used to ignore sending controls repeatedly when they do not change
 
-
+        pygame.init()
 
         # Initialize the gamepad module
         pygame.joystick.init()
