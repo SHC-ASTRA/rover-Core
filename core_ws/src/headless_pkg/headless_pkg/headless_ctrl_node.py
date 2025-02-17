@@ -31,8 +31,6 @@ class Headless(Node):
         self.lastMsg = String() #Used to ignore sending controls repeatedly when they do not change
 
 
-        # Initialize pygame
-        pygame.init()
 
         # Initialize the gamepad module
         pygame.joystick.init()
