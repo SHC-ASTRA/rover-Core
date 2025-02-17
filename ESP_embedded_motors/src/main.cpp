@@ -15,20 +15,13 @@
 #include <cmath>
 
 #include "AstraMisc.h"
-#include "AstraMotors.h"
+#include "AstraMotors.h"  // includes AstraREVCAN.h
 
 // Project header
 #if defined(TESTBED)
 #    include "project/TESTBED.h"
 #else
 #    include "project/CORE.h"
-#endif
-
-// REV CAN
-#ifdef OLD_ASTRACAN_ENABLE
-#    include "AstraCAN.h"
-#else
-#    include "AstraREVCAN.h"
 #endif
 
 
@@ -473,7 +466,7 @@ void loop() {
         else if (args[0] == "forward") {
             driveMeters(args[1].toFloat());
         }
-#if defined(DEBUG) && !defined(OLD_ASTRACAN_ENABLE)
+#ifdef DEBUG
         else if (args[0] == "id") {
             CAN_identifySparkMax(2);
         }
