@@ -74,7 +74,6 @@ void Brake(bool enable);
 void goForwards(float speed);
 void goBackwards(float speed);
 void loopHeartbeats();
-void safety_timeout();
 void driveMeters(float meters);
 float getDriveSpeed();
 
@@ -163,14 +162,14 @@ void loop() {
     }
 
     // Accelerate motors; update the speed for all motors
-    if (millis() - lastAccel >= 50)
-    {
-        lastAccel = millis();
-        for (int i = 0; i < 4; i++)
-        {
-            motorList[i]->accelerate();
-        }
-    }
+    // if (millis() - lastAccel >= 50)
+    // {
+    //     lastAccel = millis();
+    //     for (int i = 0; i < 4; i++)
+    //     {
+    //         motorList[i]->accelerate();
+    //     }
+    // }
 
     // Heartbeat for REV motors
     if (millis() - lastHB >= 3)
@@ -185,32 +184,36 @@ void loop() {
     }
 
     // Safety timeout
-    safety_timeout();
+    if (millis() - lastCtrlCmd > 2000)  // if no control commands are received for 2 seconds
+    {
+        lastCtrlCmd = millis();
+
+        // Only ignore safety timeout if all motors are rotating
+        bool allRotating = true;
+        for (int i = 0; i < 4; i++)
+        {
+            if (!motorList[i]->isRotToPos())
+            {
+                allRotating = false;
+                break;
+            }
+        }
+        if (allRotating)
+            return;
+
+        COMMS_UART.println("No Control, Safety Timeout");
+        Stop();
+    }
 
     // Motor status debug printout
-#if defined(DEBUG)
     if (millis() - lastMotorStatus > 500) {
         lastMotorStatus = millis();
 
-        // Status 1
-        Serial.print(millis() - Motor2.status1.timestamp);
-        Serial.print(" ms ago: ");
-        Serial.print(Motor2.status1.motorTemperature);
-        Serial.print(" *C; ");
-        Serial.print(Motor2.status1.busVoltage);
-        Serial.print(" V; ");
-        Serial.print(Motor2.status1.outputCurrent);
-        Serial.print(" A; ");
-        Serial.print(Motor2.status1.sensorVelocity);
-        Serial.println(" RPM");
-        
-        // Status 2
-        Serial.print(millis() - Motor2.status2.timestamp);
-        Serial.print(" ms ago: ");
-        Serial.print(Motor2.status2.sensorPosition);
-        Serial.println(" rotations");
+        for (int i = 0; i < 4; i++) {
+            Serial.printf("motorstatus,%d,%d,%d,%d\n", i, motorList[i]->status1.motorTemperature,
+                motorList[i]->status1.busVoltage, motorList[i]->status1.outputCurrent);
+        }
     }
-#endif
 
     //-------------//
     //  CAN Input  //
@@ -466,10 +469,10 @@ void loop() {
         else if (args[0] == "forward") {
             driveMeters(args[1].toFloat());
         }
-#ifdef DEBUG
         else if (args[0] == "id") {
-            CAN_identifySparkMax(2);
+            CAN_identifySparkMax(args[1].toInt());
         }
+#ifdef DEBUG
         else if (args[0] == "speed" && checkArgs(args, 1)) {
             CAN_sendVelocity(MOTOR_ID_BL, args[1].toFloat());
         }
@@ -513,30 +516,6 @@ void loop() {
 //    //            //          //      //////////    //
 //                                                    //
 //----------------------------------------------------//
-
-void safety_timeout()
-{
-    if (millis() - lastCtrlCmd > 2000)  // if no control commands are received for 2 seconds
-    {
-        lastCtrlCmd = millis();
-
-        // Only ignore safety timeout if all motors are rotating
-        bool allRotating = true;
-        for (int i = 0; i < 4; i++)
-        {
-            if (!motorList[i]->isRotToPos())
-            {
-                allRotating = false;
-                break;
-            }
-        }
-        if (allRotating)
-            return;
-
-        COMMS_UART.println("No Control, Safety Timeout");
-        Stop();
-    }
-}
 
 // Bypasses the acceleration to make the rover turn clockwise
 // Should only be used for autonomy
