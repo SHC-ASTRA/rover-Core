@@ -548,7 +548,14 @@ void loop() {
     {
         String input = COMMS_UART.readStringUntil('\n');
         input.trim();
+        std::vector<String> args = {};  // Initialize empty vector to hold separated arguments
+        parseInput(input, args, ',');   // Separate `input` by commas and place into args vector
+
         Serial.println(input);
+
+        if (checkArgs(args, 4) && args[0] == "motorstatus") {
+            vicCAN.send(CMD_REVMOTOR_FEEDBACK, args[1].toInt(), args[2].toInt(), args[3].toInt(), args[4].toInt());
+        }
     }
 }
 

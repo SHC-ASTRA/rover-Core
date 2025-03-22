@@ -210,8 +210,10 @@ void loop() {
         lastMotorStatus = millis();
 
         for (int i = 0; i < 4; i++) {
-            Serial.printf("motorstatus,%d,%d,%d,%d\n", i, motorList[i]->status1.motorTemperature,
-                motorList[i]->status1.busVoltage, motorList[i]->status1.outputCurrent);
+            if (millis() - motorList[i]->status1.timestamp > 500)  // Don't send outdated data
+                continue;
+            Serial.printf("motorstatus,%d,%d,%d,%d\n", motorList[i]->getID(), int(motorList[i]->status1.motorTemperature * 10),
+                int(motorList[i]->status1.busVoltage * 10), int(motorList[i]->status1.outputCurrent * 10));
         }
     }
 
