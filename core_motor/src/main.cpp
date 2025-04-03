@@ -18,7 +18,7 @@
 #include "AstraMotors.h"  // includes AstraREVCAN.h
 
 // Project header
-#if defined(TESTBED)
+#ifdef TESTBED
 #    include "project/TESTBED.h"
 #else
 #    include "project/CORE.h"
@@ -35,17 +35,22 @@
 #    define COMMS_UART Serial
 #endif
 
+#ifdef TESTBED
+#   define WHEEL_GEARBOX 64
+#else
+#   define WHEEL_GEARBOX 100
+#endif
+
 
 //---------------------//
 //  Component classes  //
 //---------------------//
 
-// AstraMotors(int setMotorID, int setCtrlMode, bool inv, int setMaxSpeed, float
-// setMaxDuty)
-AstraMotors Motor1(MOTOR_ID_FL, sparkMax_ctrlType::kDutyCycle, false, 1000, 1.0);  // Front Left
-AstraMotors Motor2(MOTOR_ID_BL, sparkMax_ctrlType::kDutyCycle, false, 1000, 1.0);  // Back Left
-AstraMotors Motor3(MOTOR_ID_FR, sparkMax_ctrlType::kDutyCycle, true, 1000, 1.0);   // Front Right
-AstraMotors Motor4(MOTOR_ID_BR, sparkMax_ctrlType::kDutyCycle, true, 1000, 1.0);   // Back Right
+// AstraMotors(int setMotorID, int setCtrlMode, bool setInverted, int setGearBox)
+AstraMotors Motor1(MOTOR_ID_FL, sparkMax_ctrlType::kDutyCycle, false, WHEEL_GEARBOX);  // Front Left
+AstraMotors Motor2(MOTOR_ID_BL, sparkMax_ctrlType::kDutyCycle, false, WHEEL_GEARBOX);  // Back Left
+AstraMotors Motor3(MOTOR_ID_FR, sparkMax_ctrlType::kDutyCycle, true, WHEEL_GEARBOX);   // Front Right
+AstraMotors Motor4(MOTOR_ID_BR, sparkMax_ctrlType::kDutyCycle, true, WHEEL_GEARBOX);   // Back Right
 
 AstraMotors* motorList[4] = {&Motor1, &Motor2, &Motor3, &Motor4};  // Left motors first, right motors second
 
