@@ -68,6 +68,7 @@ bool ledState = false;
 unsigned long clockTimer = 0;
 unsigned long lastFeedback = 0;
 unsigned long lastCtrlCmd = 0;
+unsigned long lastVoltRead = 0;
 
 
 //--------------//
@@ -80,6 +81,7 @@ String outputBno();
 String outputBmp();
 String outputGPS();
 void setLED(int r_val, int b_val, int g_val);
+float convertADC(uint16_t reading, const float r1, const float r2);
 
 
 
@@ -270,6 +272,16 @@ void loop() {
         Serial.println(bnoData2[6]);
 
         lastFeedback = millis();
+    }
+
+    if (millis() - lastVoltRead > 1000) {
+        lastVoltRead = millis();
+        float vBatt = convertADC(analogRead(PIN_VDIV_BATT), 10, 2.21);
+        float v12 = convertADC(analogRead(PIN_VDIV_12V), 10, 3.32);
+        float v5 = convertADC(analogRead(PIN_VDIV_5V), 10, 10);
+        float v33 = convertADC(analogRead(PIN_VDIV_3V3), 10, 1.1);
+
+        vicCAN.send(CMD_POWER_VOLTAGE, vBatt * 100, v12 * 100, v5 * 100, v33 * 100);
     }
 
 
@@ -705,4 +717,23 @@ void setLED(int r_val, int b_val, int g_val)
       FastLED.show();
       delay(10);
     }
+}
+
+/**
+ * @brief Converts ADC reading to voltage based on a voltage divider
+ * 
+ * @param reading ADC reading
+ * @param r1 Resistance of R1 in the voltage divider (in kOhms)
+ * @param r2 Resistance of R2 in the voltage divider (in kOhms)
+ * @return float Voltage calculated from the ADC reading
+ */
+float convertADC(uint16_t reading, const float r1, const float r2) {
+    if (reading == 0)
+        return 0;  // Avoid divide by zero
+
+    // Max Vs that the voltage divider is designed to read
+    const float maxSource = (3.3 * (r1 * 1000 + r2 * 1000)) / (r2 * 1000);
+
+    // ADC range is 0-4095 (12-bit precision)
+    return (static_cast<float>(reading) / 4095.0) * maxSource;  // Clamp reading [0-maxSource]
 }
