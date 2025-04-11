@@ -251,6 +251,7 @@ void loop() {
 
     if((millis()-lastFeedback)>=2000)
     {
+        lastFeedback = millis();
         sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
         bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
         bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
@@ -271,7 +272,9 @@ void loop() {
         Serial.print(",");
         Serial.println(bnoData2[6]);
 
-        lastFeedback = millis();
+        vicCAN.send(CMD_GNSS_LAT, gpsData[0]);
+        vicCAN.send(CMD_GNSS_LON, gpsData[1]);
+        vicCAN.send(CMD_GNSS_SAT, gpsData[2]);
     }
 
     if (millis() - lastVoltRead > 1000) {
