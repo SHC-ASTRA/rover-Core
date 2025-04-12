@@ -81,7 +81,6 @@ String outputBno();
 String outputBmp();
 String outputGPS();
 void setLED(int r_val, int b_val, int g_val);
-float convertADC(uint16_t reading, const float r1, const float r2);
 
 
 
@@ -720,23 +719,4 @@ void setLED(int r_val, int b_val, int g_val)
       FastLED.show();
       delay(10);
     }
-}
-
-/**
- * @brief Converts ADC reading to voltage based on a voltage divider
- * 
- * @param reading ADC reading
- * @param r1 Resistance of R1 in the voltage divider (in kOhms)
- * @param r2 Resistance of R2 in the voltage divider (in kOhms)
- * @return float Voltage calculated from the ADC reading
- */
-float convertADC(uint16_t reading, const float r1, const float r2) {
-    if (reading == 0)
-        return 0;  // Avoid divide by zero
-
-    // Max Vs that the voltage divider is designed to read
-    const float maxSource = (3.3 * (r1 * 1000 + r2 * 1000)) / (r2 * 1000);
-
-    // ADC range is 0-4095 (12-bit precision)
-    return (static_cast<float>(reading) / 4095.0) * maxSource;  // Clamp reading [0-maxSource]
 }
