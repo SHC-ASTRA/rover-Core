@@ -203,11 +203,10 @@ void loop() {
                 break;
             }
         }
-        if (allRotating)
-            return;
-
-        COMMS_UART.println("No Control, Safety Timeout");
-        Stop();
+        if (!allRotating) {
+            COMMS_UART.println("No Control, Safety Timeout");
+            Stop();
+        }
     }
 
     // Motor status debug printout
@@ -217,7 +216,7 @@ void loop() {
         for (int i = 0; i < 4; i++) {
             if (millis() - motorList[i]->status1.timestamp > 500)  // Don't send outdated data
                 continue;
-            Serial.printf("motorstatus,%d,%d,%d,%d\n", motorList[i]->getID(), int(motorList[i]->status1.motorTemperature * 10),
+            COMMS_UART.printf("motorstatus,%d,%d,%d,%d\n", motorList[i]->getID(), int(motorList[i]->status1.motorTemperature * 10),
                 int(motorList[i]->status1.busVoltage * 10), int(motorList[i]->status1.outputCurrent * 10));
         }
     }
@@ -407,28 +406,12 @@ void loop() {
         else if (args[0] == "id") {
             CAN_identifySparkMax(args[1].toInt());
         }
+        else if (args[0] == "stop") {
+            Stop();
+        }
 #ifdef DEBUG
         else if (args[0] == "speed" && checkArgs(args, 1)) {
             CAN_sendVelocity(MOTOR_ID_BL, args[1].toFloat());
-        }
-        else if (args[0] == "newduty") {
-            Serial.print("Setting duty cycle ");
-            Serial.println(args[1].toFloat());
-            CAN_sendDutyCycle(1, args[1].toFloat());
-            CAN_sendDutyCycle(2, args[1].toFloat());
-            CAN_sendDutyCycle(3, args[1].toFloat());
-            CAN_sendDutyCycle(4, args[1].toFloat());
-        }
-        else if (args[0] == "stop") {
-            Serial.println("Stopping all motors");
-            for (int i = 0; i < 4; i++)
-            {
-                CAN_sendDutyCycle(i, 0);
-                Stop();
-            }
-        }
-        else if (args[0] == "turnby") {
-            Motor2.turnByDeg(args[1].toFloat());
         }
 #endif
     }
