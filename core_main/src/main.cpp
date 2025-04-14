@@ -251,29 +251,28 @@ void loop() {
     if((millis()-lastFeedback)>=2000)
     {
         lastFeedback = millis();
-        sensors_event_t orientationData , angVelocityData , linearAccelData, magnetometerData, accelerometerData, gravityData;
+        sensors_event_t orientationData , angVelocityData , linearAccelData;
         bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
         bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
         bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
-        bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-        bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
-        bno.getEvent(&gravityData, Adafruit_BNO055::VECTOR_GRAVITY);
-        
-        // feedback = outputGPS() + "," + outputBno() + "," + outputBmp();
+
         double gpsData[3];
         float bnoData2[7];
 
         getPosition(myGNSS, gpsData);
         pullBNOData(bno, bnoData2);
-        Serial.print(String(gpsData[0]));
-        Serial.print(",");
-        Serial.println(String(gpsData[1]));
-        Serial.print(",");
-        Serial.println(bnoData2[6]);
 
+        // M9N (GNSS) Data
         vicCAN.send(CMD_GNSS_LAT, gpsData[0]);
         vicCAN.send(CMD_GNSS_LON, gpsData[1]);
         vicCAN.send(CMD_GNSS_SAT, gpsData[2]);
+
+        // BNO (IMU) Data
+        vicCAN.send(CMD_DATA_IMU_GYRO, bnoData2[0], bnoData2[1], bnoData2[2]);  // TODO: Might include calibration status here
+        vicCAN.send(CMD_DATA_IMU_ACCEL_HEADING, bnoData2[3], bnoData2[4], bnoData2[5], bnoData2[6]);
+
+        // BMP (Humidity, altitude, pressure) Data
+        vicCAN.send(CMD_DATA_BMP, bmp.readTemperature(), bmp.readAltitude(SEALEVELPRESSURE_HPA), bmp.readPressure() / 100.0);
     }
 
     if (millis() - lastVoltRead > 1000) {
