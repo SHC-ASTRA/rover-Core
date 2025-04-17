@@ -114,6 +114,12 @@ void setup() {
     Serial.begin(SERIAL_BAUD);
     Serial1.begin(COMMS_UART_BAUD);
 
+    // Setup CAN
+    if (ESP32Can.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX))
+        COMMS_UART.println("CAN bus started!");
+    else
+        COMMS_UART.println("CAN bus failed!");
+
     //-----------//
     //  Sensors  //
     //-----------//
@@ -122,15 +128,6 @@ void setup() {
     //  Misc. Components  //
     //--------------------//
 
-    // Setup CAN
-    if (ESP32Can.begin(TWAI_SPEED_1000KBPS, CAN_TX, CAN_RX)) 
-    {
-        COMMS_UART.println("CAN bus started!");
-    } 
-    else 
-    {
-        COMMS_UART.println("CAN bus failed!");
-    }
 }
 
 
@@ -179,8 +176,8 @@ void loop() {
     // Heartbeat for REV motors
     if (millis() - lastHB >= 3)
     {
-        sendHeartbeat(ESP32Can, heartBeatNum);
         lastHB = millis();
+        CAN_sendHeartbeat(heartBeatNum);
         heartBeatNum++;
         if (heartBeatNum > 4)
         {
@@ -221,6 +218,7 @@ void loop() {
         }
     }
 
+
     //-------------//
     //  CAN Input  //
     //-------------//
@@ -254,6 +252,7 @@ void loop() {
         }
     }
 
+
     //------------------//
     //  UART/USB Input  //
     //------------------//
@@ -271,28 +270,27 @@ void loop() {
     //                                                       //
     //-------------------------------------------------------//
     if (COMMS_UART.available()) {
-        String command = COMMS_UART.readStringUntil('\n');
-        command.trim();
-#ifdef DEBUG
-        Serial.println(command);
-#endif
-        static String prevCommand;
+        String input = COMMS_UART.readStringUntil('\n');
 
+        input.trim();
         std::vector<String> args = {};
-        parseInput(command, args);
+        parseInput(input, args);
+
+#ifdef DEBUG
+        Serial.println(input);
+#endif
+        String prevCommand;
 
         //--------//
         //  Misc  //
         //--------//
+
         /**/ if (args[0] == "ping")
         {
-#ifndef DEBUG
-            COMMS_UART.println("pong");
-#else
             Serial.println("pong");
             Serial1.println("pong");
-#endif
-        } 
+        }
+
         else if (args[0] == "time") 
         {
             COMMS_UART.println(millis());
@@ -305,12 +303,13 @@ void loop() {
         //----------//
         //  Motors  //
         //----------//
+
         else if (args[0] == "ctrl") // Is looking for a command that looks like "ctrl,LeftY-Axis,RightY-Axis" where LY,RY are >-1 and <1
         {   
             lastCtrlCmd = millis();
-            if (command != prevCommand)
+            if (input != prevCommand)
             {
-                prevCommand = command;
+                prevCommand = input;
 
                 if (checkArgs(args, 2))
                 {
@@ -355,24 +354,18 @@ void loop() {
             if (args[1] == "on") 
             {
                 Brake(true);
-#ifdef DEBUG
-                Serial.println("Setting brakemode on.");
-#endif
             }
 
             else if (args[1] == "off")
             {
                 Brake(false);
-#ifdef DEBUG
-                Serial.println("Setting brakemode off.");
-#endif
             }
         }
 
         else if (args[0] == "auto") // Commands for autonomy
         { 
             lastCtrlCmd = millis();
-            if (command != prevCommand)
+            if (input != prevCommand)
             {
                 if (args[1] == "forwards") // auto,forwards
                 {  
@@ -400,15 +393,19 @@ void loop() {
                 }
             }
         }
+
         else if (args[0] == "forward") {
             driveMeters(args[1].toFloat());
         }
+
         else if (args[0] == "id") {
             CAN_identifySparkMax(args[1].toInt());
         }
+
         else if (args[0] == "stop") {
             Stop();
         }
+
 #ifdef DEBUG
         else if (args[0] == "speed" && checkArgs(args, 1)) {
             CAN_sendVelocity(MOTOR_ID_BL, args[1].toFloat());

@@ -158,7 +158,9 @@ void setup() {
 
     initializeBMP(bmp);
 
+
     // Setup for GPS
+
     myGNSS.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
     myGNSS.setNavigationFrequency(30);
     // Create storage for the time pulse parameters
@@ -213,9 +215,9 @@ void setup() {
     FastLED.setBrightness(255);
     for(int i = 0; i < NUM_LEDS; ++i)
     {
-      leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
-      FastLED.show();
-      delay(10);
+        leds[i] = CRGB(led_rbg[0], led_rbg[1], led_rbg[2]);
+        FastLED.show();
+        delay(10);
     }
 }
 
@@ -284,7 +286,6 @@ void loop() {
 
         vicCAN.send(CMD_POWER_VOLTAGE, vBatt * 100, v12 * 100, v5 * 100, v33 * 100);
     }
-
 
 
     //-------------//
@@ -708,14 +709,14 @@ int findRotationDirection(float current_direction, float target_direction)
         return 0;//Rotate CCW if distance is greater than 180
     }
 
-} 
+}
 
 void setLED(int r_val, int b_val, int g_val)
 {
     for(int i = 0; i < NUM_LEDS; ++i)
     {
-      leds[i] = CRGB(r_val, b_val, g_val);
-      FastLED.show();
-      delay(10);
+        leds[i] = CRGB(r_val, b_val, g_val);
+        FastLED.show();
+        delay(10);
     }
 }
