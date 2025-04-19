@@ -164,14 +164,14 @@ void loop() {
     }
 
     // Accelerate motors; update the speed for all motors
-    // if (millis() - lastAccel >= 50)
-    // {
-    //     lastAccel = millis();
-    //     for (int i = 0; i < 4; i++)
-    //     {
-    //         motorList[i]->accelerate();
-    //     }
-    // }
+    if (millis() - lastAccel >= 50)
+    {
+        lastAccel = millis();
+        for (int i = 0; i < 4; i++)
+        {
+            motorList[i]->accelerate();
+        }
+    }
 
     // Heartbeat for REV motors
     if (millis() - lastHB >= 3)
