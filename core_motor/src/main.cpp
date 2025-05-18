@@ -18,11 +18,7 @@
 #include "AstraMotors.h"  // includes AstraREVCAN.h
 
 // Project header
-#ifdef TESTBED
-#    include "project/TESTBED.h"
-#else
-#    include "project/CORE.h"
-#endif
+#include "CoreMotorMCU.h"
 
 
 //------------//
@@ -32,7 +28,9 @@
 // #define DEBUG_STATUS
 
 #ifdef DEBUG
-#    define COMMS_UART Serial
+#    define COMMS_UART Serial  // Talk directly over USB
+#else
+#    define COMMS_UART Serial1  // UART between Main-Motor
 #endif
 
 #ifdef TESTBED

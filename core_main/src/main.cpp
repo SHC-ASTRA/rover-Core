@@ -15,11 +15,7 @@
 #include <utility/imumaths.h>
 #include <FastLED.h>
 // Our own resources
-#if defined(TESTBED)
-#   include "project/TESTBED.h"
-#else
-#   include "project/CORE.h"
-#endif
+#include "CoreMainMCU.h"
 #include "AstraMisc.h"
 #include "AstraVicCAN.h"
 #include "AstraSensors.h"
@@ -31,6 +27,8 @@
 
 // Comment out to disable LED blinking
 #define BLINK
+
+#define COMMS_UART Serial1  // UART between Main-Motor
 
 // strip 1: 1-40
 // strip 2: 41-82
