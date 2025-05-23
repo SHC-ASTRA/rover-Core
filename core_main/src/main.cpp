@@ -262,13 +262,16 @@ void loop() {
         getPosition(myGNSS, gpsData);
         pullBNOData(bno, bnoData2);
 
+        uint8_t bnoCalibration = 0;
+        bno.getCalibration(&bnoCalibration, nullptr, nullptr, nullptr);
+
         // M9N (GNSS) Data
         vicCAN.send(CMD_GNSS_LAT, gpsData[0]);
         vicCAN.send(CMD_GNSS_LON, gpsData[1]);
         vicCAN.send(CMD_GNSS_SAT, gpsData[2]);
 
         // BNO (IMU) Data
-        vicCAN.send(CMD_DATA_IMU_GYRO, bnoData2[0], bnoData2[1], bnoData2[2]);  // TODO: Might include calibration status here
+        vicCAN.send(CMD_DATA_IMU_GYRO, bnoData2[0], bnoData2[1], bnoData2[2], bnoCalibration);
         vicCAN.send(CMD_DATA_IMU_ACCEL_HEADING, bnoData2[3], bnoData2[4], bnoData2[5], bnoData2[6]);
 
         // BMP (Humidity, altitude, pressure) Data
