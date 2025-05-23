@@ -18,11 +18,7 @@
 #include "AstraMotors.h"  // includes AstraREVCAN.h
 
 // Project header
-#ifdef TESTBED
-#    include "project/TESTBED.h"
-#else
-#    include "project/CORE.h"
-#endif
+#include "CoreMotorMCU.h"
 
 
 //------------//
@@ -32,7 +28,9 @@
 // #define DEBUG_STATUS
 
 #ifdef DEBUG
-#    define COMMS_UART Serial
+#    define COMMS_UART Serial  // Talk directly over USB
+#else
+#    define COMMS_UART Serial1  // UART between Main-Motor
 #endif
 
 #ifdef TESTBED
@@ -316,8 +314,8 @@ void loop() {
                     motorList[0]->setDuty(args[1].toFloat());
                     motorList[1]->setDuty(args[1].toFloat());
 
-                    motorList[2]->setDuty(args[2].toFloat());
-                    motorList[3]->setDuty(args[2].toFloat());
+                    motorList[2]->setDuty(-1 * args[2].toFloat());
+                    motorList[3]->setDuty(-1 * args[2].toFloat());
                 } else if (checkArgs(args, 1))
                 {
                     motorList[0]->setDuty(args[1].toFloat());
@@ -337,8 +335,8 @@ void loop() {
                 motorList[0]->sendDuty(args[1].toFloat());
                 motorList[1]->sendDuty(args[1].toFloat());
 
-                motorList[2]->sendDuty(args[2].toFloat());
-                motorList[3]->sendDuty(args[2].toFloat());
+                motorList[2]->sendDuty(-1 * args[2].toFloat());
+                motorList[3]->sendDuty(-1 * args[2].toFloat());
             } else if (checkArgs(args, 1))
             {
                 motorList[0]->sendDuty(args[1].toFloat());
